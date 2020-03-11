@@ -4,7 +4,7 @@ public class AsNumbersSum {
     // раскладывает параметр number, как всевозможные уникальные комбинации сумм натуральных чисел, например:
     // 5 = 4+1 = 3+2 = 3+1+1 = 2+2+1 = 2+1+1+1 = 1+1+1+1+1
     public static String asNumbersSum(int number) {
-        return number + divideIntoTerms(5, 1, "");
+        return number + divideIntoTerms(number, 1, "");
     }
 
     public static String divideIntoTerms(int number, int secondTerm, String lastTerm) {
