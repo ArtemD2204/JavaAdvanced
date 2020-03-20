@@ -1,7 +1,7 @@
 package ru.progwards.java2.lessons.basetypes;
 
 import java.util.Iterator;
-import java.util.ListIterator;
+import java.util.NoSuchElementException;
 
 public class BiDirList<T> {
 
@@ -146,52 +146,24 @@ public class BiDirList<T> {
         return array;
     }
 
-    public Iterator<BiDirList<T>> getIterator() { // получить итератор
-        return new ListIterator<BiDirList<T>>() {
+    public Iterator<T> getIterator() { // получить итератор
+        return new Iterator<T>() {
+            private ListItem<T> currentListItem = getHead();
+            private int index = 0;
+
             @Override
             public boolean hasNext() {
-                return false;
+                return index < size();
             }
 
             @Override
-            public BiDirList<T> next() {
-                return null;
+            public T next() {
+                if (!hasNext()) throw new NoSuchElementException();
+                ListItem<T> listItemToReturn = currentListItem;
+                currentListItem = currentListItem.getNext();
+                index++;
+                return listItemToReturn.getItem();
             }
-
-            @Override
-            public boolean hasPrevious() {
-                return false;
-            }
-
-            @Override
-            public BiDirList<T> previous() {
-                return null;
-            }
-
-            @Override
-            public int nextIndex() {
-                return 0;
-            }
-
-            @Override
-            public int previousIndex() {
-                return 0;
-            }
-
-            @Override
-            public void remove() {
-
-            }
-
-            @Override
-            public void set(BiDirList<T> tBiDirList) {
-
-            }
-
-            @Override
-            public void add(BiDirList<T> tBiDirList) {
-
-            }
-        }
+        };
     }
 }
