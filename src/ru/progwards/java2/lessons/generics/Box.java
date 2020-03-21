@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class Box<T extends Fruit> extends ArrayList<T> implements Comparable<Box<? extends Fruit>> {
 
     public boolean addFruit(T elem) {
-        // Каждая коробка может содержать фрукты только одного типа, либо я блоки, либо апельсины.
+        // Каждая коробка может содержать фрукты только одного типа, либо яблоки, либо апельсины.
         // В случае попытки положить апельсин в коробку с яблоками и наоборот выдать исключение UnsupportedOperationException
         if(size() > 0) {
             T lastFruit = get(size()-1);
