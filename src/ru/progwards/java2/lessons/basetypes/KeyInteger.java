@@ -23,4 +23,16 @@ public class KeyInteger implements HashValue {
         final int N = 13;
         return (int)(N * (d - Math.floor(d)));
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof KeyInteger)) {
+            return false;
+        }
+        KeyInteger that = (KeyInteger) o;
+        return this.key == that.key;
+    }
 }
