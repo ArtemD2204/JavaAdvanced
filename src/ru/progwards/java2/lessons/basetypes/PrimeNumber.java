@@ -22,4 +22,8 @@ public class PrimeNumber {
         }
         return nearestPrime;
     }
+
+    public static void main(String[] args) {
+        System.out.println(PrimeNumber.getNearestPrime(509*2));
+    }
 }

@@ -35,27 +35,42 @@ public class DoubleHashTable<K extends HashValue, V> {
     Object[] table;
     private int size;
 
-    public int getTableLength() {
-        return table.length;
-    }
-
     DoubleHashTable() {
         table = new Object[101];
         size = 0;
     }
 
+    private int getHash(int key) {
+        return key % table.length;
+    }
+
+    private int getHashForStep(int key) {
+        double A = (Math.pow(5, 0.5) - 1) / 2;
+        double d = key * A;
+        int N = 509;
+        return (int)(N * (d - Math.floor(d)));
+    }
+
     public void add(K key, V item) {
-        int index = key.getHash();
-        int step = key.getHashForStep();
-        while (true){ //&& !((TableItem<K, V>) table[index]).isRemoved) {
+        int index = getHash(key.getHash());
+        int step = getHashForStep(key.getHash());
+        int collisionCounter = 0;
+        while (true){
             if (index >= table.length) {
-//                throw new ArrayIndexOutOfBoundsException();
-                expandTable();
+                index = index % table.length;
             }
             if(table[index] == null || ((TableItem<K, V>) table[index]).isRemoved)
                 break;
-            index += step;
+            collisionCounter++;
+            if(collisionCounter * 100 / table.length >= 10) {
+                expandTable();
+                index = getHash(key.getHash());
+                step = getHashForStep(key.getHash());
+            } else {
+                index += step;
+            }
         }
+        System.out.println(index + " " + " " + item + "  " + table.length);
         table[index] = new TableItem<K, V>(key, item);
         size++;
     }
@@ -73,24 +88,32 @@ public class DoubleHashTable<K extends HashValue, V> {
     }
 
     public V get(K key) {
-        int index = key.getHash();
-        int step = key.getHashForStep();
-        while (table[index] != null && !key.equals(((TableItem<K, V>)table[index]).getKey())) {
+        int index = getHash(key.getHash());
+        int step = getHashForStep(key.getHash());
+        int startIndex = index;
+        while (index != startIndex) {
             if (index >= table.length)
-                return null;
+                index = index % table.length;
+            if(table[index] == null || key.equals(((TableItem<K, V>)table[index]).getKey())) {
+                break;
+            }
             index += step;
         }
-        if (table[index] == null || ((TableItem<K, V>)table[index]).isRemoved)
+        if (table[index] == null || ((TableItem<K, V>)table[index]).isRemoved || !key.equals(((TableItem<K, V>)table[index]).getKey()))
             return null;
         return ((TableItem<K, V>)table[index]).getItem();
     }
 
     public void remove(K key) {
-        int index = key.getHash();
-        int step = key.getHashForStep();
-        while (table[index] != null && !key.equals(((TableItem<K, V>)table[index]).getKey())) {
+        int index = getHash(key.getHash());
+        int step = getHashForStep(key.getHash());
+        int startIndex = index;
+        while (index != startIndex) {
             if (index >= table.length)
-                return;
+                index = index % table.length;
+            if(table[index] == null || key.equals(((TableItem<K, V>)table[index]).getKey())) {
+                break;
+            }
             index += step;
         }
         if (table[index] != null && !((TableItem<K, V>)table[index]).isRemoved) {
@@ -146,11 +169,22 @@ public class DoubleHashTable<K extends HashValue, V> {
 
     public static void main(String[] args) {
         DoubleHashTable<KeyInteger, Integer> intHashTable = new DoubleHashTable<>();
-        for(int i = 0; i < 112; i++) {
-            intHashTable.add(new KeyInteger(i, intHashTable.getTableLength()), i);
+        for(int i = 0; i < 101; i++) {
+            intHashTable.add(new KeyInteger(i), i);
         }
-        for(int i = 0; i < 112; i++) {
-            System.out.println(intHashTable.get(new KeyInteger(i, intHashTable.getTableLength())));
+        intHashTable.add(new KeyInteger(101), 101);
+        intHashTable.remove(new KeyInteger(50));
+        intHashTable.change(new KeyInteger(45), new KeyInteger(55));
+
+        for(int i = 0; i < 199; i++) {
+            System.out.println(intHashTable.get(new KeyInteger(i)));
         }
+
+        for(int i = 0; i < 199; i++) {
+            if(((DoubleHashTable.TableItem)intHashTable.table[i]) != null)
+                System.out.println(i + " " + ((DoubleHashTable.TableItem)intHashTable.table[i]).getItem());
+        }
+
+//        System.out.println(intHashTable.getHashForStep(101));
     }
 }

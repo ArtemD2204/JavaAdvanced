@@ -14,20 +14,7 @@ public class KeyString implements HashValue {
         long hash = 0;
         for (int i = 0; i < str.length(); i++) {
             hash = unsignedInt(hash * a + str.charAt(i));
-            hash = Math.abs(hash);
             a = unsignedInt(a * b);
-            a = Math.abs(a);
-        }
-        return hash;
-    }
-
-    private long ROT13Hash (String str) {
-
-        long hash = 0;
-        for (int i = 0; i < str.length(); i++) {
-            hash = unsignedInt(hash + str.charAt(i));
-            hash -= (unsignedInt(hash << 13) | (hash >> 19));
-            hash = hash < 0 ? hash + Integer.MAX_VALUE : hash;
         }
         return hash;
     }
@@ -39,17 +26,6 @@ public class KeyString implements HashValue {
     @Override
     public int getHash() {
         return (int)RSHash(key);
-    }
-
-    @Override
-    public int getHashForStep() {
-        return (int)ROT13Hash(key);
-    }
-
-    public static void main(String[] args) {
-        KeyString keyString = new KeyString("Александр Зубrjdcrbq");
-        System.out.println(keyString.getHash());
-        System.out.println(keyString.getHashForStep());
     }
 
     @Override
