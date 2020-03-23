@@ -116,7 +116,7 @@ public class DoubleHashTable<K extends HashValue, V> {
             }
             index += step;
         }
-        if (table[index] != null && !((TableItem<K, V>)table[index]).isRemoved) {
+        if (table[index] != null && !((TableItem<K, V>)table[index]).isRemoved && key.equals(((TableItem<K, V>)table[index]).getKey())) {
             ((TableItem<K, V>) table[index]).isRemoved = true;
             size--;
         }
@@ -139,7 +139,7 @@ public class DoubleHashTable<K extends HashValue, V> {
 
         HashTableIterator() {
             currentTableIndex = 0;
-            while(table[currentTableIndex] == null || ((TableItem<K, V>)table[currentTableIndex]).isRemoved) {
+            while(currentTableIndex < table.length && (table[currentTableIndex] == null || ((TableItem<K, V>)table[currentTableIndex]).isRemoved)) {
                 currentTableIndex++;
             }
             number = 0;
@@ -155,7 +155,7 @@ public class DoubleHashTable<K extends HashValue, V> {
             if (!hasNext()) throw new NoSuchElementException();
             TableItem<K, V> tableItemToReturn = (TableItem<K, V>) table[currentTableIndex];
             currentTableIndex++;
-            while(table[currentTableIndex] == null || ((TableItem<K, V>)table[currentTableIndex]).isRemoved) {
+            while(currentTableIndex < table.length && (table[currentTableIndex] == null || ((TableItem<K, V>)table[currentTableIndex]).isRemoved)) {
                 currentTableIndex++;
             }
             number++;
@@ -181,8 +181,14 @@ public class DoubleHashTable<K extends HashValue, V> {
         }
 
         for(int i = 0; i < 199; i++) {
-            if(((DoubleHashTable.TableItem)intHashTable.table[i]) != null)
+            if((intHashTable.table[i]) != null)
                 System.out.println(i + " " + ((DoubleHashTable.TableItem)intHashTable.table[i]).getItem());
+        }
+
+        Iterator iterator = intHashTable.getIterator();
+        while (iterator.hasNext()) {
+            DoubleHashTable.TableItem item = (DoubleHashTable.TableItem)iterator.next();
+            System.out.println(item.getItem());
         }
 
 //        System.out.println(intHashTable.getHashForStep(101));
