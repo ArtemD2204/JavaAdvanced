@@ -10,7 +10,7 @@ public class DoubleHashTable<K extends HashValue, V> {
 
         private V item;
         private K key;
-        boolean isRemoved;
+        private boolean isRemoved;
 
         TableItem(K key, V item) {
             this.key = key;
@@ -32,7 +32,7 @@ public class DoubleHashTable<K extends HashValue, V> {
 
     }
 
-    Object[] table;
+    private Object[] table;
     private int size;
 
     DoubleHashTable() {
@@ -51,13 +51,16 @@ public class DoubleHashTable<K extends HashValue, V> {
         return (int)(N * (d - Math.floor(d)));
     }
 
-    public void add(K key, V item) {
+    public void add(K key, V item) throws Exception {
         int index = getHash(key.getHash());
         int step = getHashForStep(key.getHash());
         int collisionCounter = 0;
         while (true){
             if (index >= table.length) {
                 index = index % table.length;
+            }
+            if(table[index] != null && key.equals(((TableItem<K, V>)table[index]).getKey()) && !((TableItem<K, V>) table[index]).isRemoved) {
+                throw new Exception("Key already exists");
             }
             if(table[index] == null || ((TableItem<K, V>) table[index]).isRemoved)
                 break;
@@ -70,12 +73,11 @@ public class DoubleHashTable<K extends HashValue, V> {
                 index += step;
             }
         }
-        System.out.println(index + " " + " " + item + "  " + table.length);
         table[index] = new TableItem<K, V>(key, item);
         size++;
     }
 
-    private void expandTable(){
+    private void expandTable() throws Exception{
         Object[] oldTable = Arrays.copyOf(table, table.length);
         table = new Object[PrimeNumber.getNearestPrime(table.length * 2)];
         size = 0;
@@ -94,14 +96,20 @@ public class DoubleHashTable<K extends HashValue, V> {
         while (index != startIndex) {
             if (index >= table.length)
                 index = index % table.length;
-            if(table[index] == null || key.equals(((TableItem<K, V>)table[index]).getKey())) {
-                break;
+            if(table[index] == null) {
+                return null;
+            } else {
+                if (key.equals(((TableItem<K, V>)table[index]).getKey())) {
+                    if(((TableItem<K, V>)table[index]).isRemoved) {
+                        return null;
+                    } else {
+                        return ((TableItem<K, V>)table[index]).getItem();
+                    }
+                }
             }
             index += step;
         }
-        if (table[index] == null || ((TableItem<K, V>)table[index]).isRemoved || !key.equals(((TableItem<K, V>)table[index]).getKey()))
-            return null;
-        return ((TableItem<K, V>)table[index]).getItem();
+        return null;
     }
 
     public void remove(K key) {
@@ -111,21 +119,27 @@ public class DoubleHashTable<K extends HashValue, V> {
         while (index != startIndex) {
             if (index >= table.length)
                 index = index % table.length;
-            if(table[index] == null || key.equals(((TableItem<K, V>)table[index]).getKey())) {
-                break;
+            if(table[index] == null) {
+                return;
+            } else {
+                if(key.equals(((TableItem<K, V>)table[index]).getKey())) {
+                    if(((TableItem<K, V>)table[index]).isRemoved) {
+                        return;
+                    } else {
+                        ((TableItem<K, V>) table[index]).isRemoved = true;
+                        size--;
+                        return;
+                    }
+                }
             }
             index += step;
         }
-        if (table[index] != null && !((TableItem<K, V>)table[index]).isRemoved && key.equals(((TableItem<K, V>)table[index]).getKey())) {
-            ((TableItem<K, V>) table[index]).isRemoved = true;
-            size--;
-        }
     }
 
-    public void change(K key1, K key2) { // изменить значение ключа у элемента с key1 на key2
+    public void change(K key1, K key2) throws Exception { // изменить значение ключа у элемента с key1 на key2
         V itemValue = get(key1);
-        remove(key1);
         add(key2, itemValue);
+        remove(key1);
     }
 
     public int size() {
@@ -167,7 +181,7 @@ public class DoubleHashTable<K extends HashValue, V> {
         return new HashTableIterator();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         DoubleHashTable<KeyInteger, Integer> intHashTable = new DoubleHashTable<>();
         for(int i = 0; i < 101; i++) {
             intHashTable.add(new KeyInteger(i), i);
@@ -190,7 +204,5 @@ public class DoubleHashTable<K extends HashValue, V> {
             DoubleHashTable.TableItem item = (DoubleHashTable.TableItem)iterator.next();
             System.out.println(item.getItem());
         }
-
-//        System.out.println(intHashTable.getHashForStep(101));
     }
 }
