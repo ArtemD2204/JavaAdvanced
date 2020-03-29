@@ -6,32 +6,6 @@ import java.util.NoSuchElementException;
 
 public class DoubleHashTable<K extends HashValue, V> implements Iterable<TableItem<K,V>> {
 
-//    class TableItem<K, V> {
-//
-//        private V item;
-//        private K key;
-//        private boolean isRemoved;
-//
-//        TableItem(K key, V item) {
-//            this.key = key;
-//            this.item = item;
-//            isRemoved = false;
-//        }
-//
-//        K getKey() {
-//            return key;
-//        }
-//
-//        V getItem() {
-//            return item;
-//        }
-//
-//        public String toString() {
-//            return key.toString()+" : "+item.toString();
-//        }
-//
-//    }
-
     private Object[] table;
     private int size;
 
