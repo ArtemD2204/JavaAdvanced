@@ -49,8 +49,6 @@ public class DoubleHashTable<K extends HashValue, V> implements Iterable<TableIt
         }
         table[index] = new TableItem<K, V>(key, item);
         size++;
-//        System.out.println(table[index]);
-//        System.out.println(size());
     }
 
     private void expandTable() throws Exception{
