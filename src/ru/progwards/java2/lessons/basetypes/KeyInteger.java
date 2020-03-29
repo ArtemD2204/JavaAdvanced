@@ -8,7 +8,6 @@ public class KeyInteger implements HashValue {
         this.key = key;
     }
 
-
     @Override
     public int getHash() {
         return key;
@@ -24,5 +23,10 @@ public class KeyInteger implements HashValue {
         }
         KeyInteger that = (KeyInteger) o;
         return this.key == that.key;
+    }
+
+    @Override
+    public String toString() {
+        return Integer.toString(key);
     }
 }

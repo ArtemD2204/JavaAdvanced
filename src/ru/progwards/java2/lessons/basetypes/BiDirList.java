@@ -3,7 +3,12 @@ package ru.progwards.java2.lessons.basetypes;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class BiDirList<T> {
+public class BiDirList<T> implements Iterable<T> {
+
+    @Override
+    public Iterator<T> iterator() {
+        return getIterator();
+    }
 
     class ListItem<T> {
 
@@ -88,10 +93,11 @@ public class BiDirList<T> {
             }
             current = current.getNext();
         }
+        throw new NoSuchElementException();
     }
 
     public T at(int i) { // получить элемент по индексу
-        if(i >= size()) {
+        if(i >= size() || i < 0) {
             throw new IndexOutOfBoundsException();
         }
 
@@ -165,5 +171,22 @@ public class BiDirList<T> {
                 return listItemToReturn.getItem();
             }
         };
+    }
+
+    public static void main(String[] args) {
+
+        BiDirList<Integer> list = new BiDirList<>();
+        for(int i = 0; i < 101; i++) {
+            list.addFirst(i);
+        }
+
+        for (Integer i:list) {
+            System.out.println(i);
+        }
+
+        Iterator<Integer> iterator = list.iterator();
+        while (iterator.hasNext()){
+            System.out.println(iterator.next());
+        }
     }
 }

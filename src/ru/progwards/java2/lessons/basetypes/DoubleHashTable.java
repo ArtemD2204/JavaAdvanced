@@ -4,33 +4,33 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class DoubleHashTable<K extends HashValue, V> {
+public class DoubleHashTable<K extends HashValue, V> implements Iterable<TableItem<K,V>> {
 
-    class TableItem<K, V> {
-
-        private V item;
-        private K key;
-        private boolean isRemoved;
-
-        TableItem(K key, V item) {
-            this.key = key;
-            this.item = item;
-            isRemoved = false;
-        }
-
-        K getKey() {
-            return key;
-        }
-
-        V getItem() {
-            return item;
-        }
-
-        public String toString() {
-            return key+":"+item.toString();
-        }
-
-    }
+//    class TableItem<K, V> {
+//
+//        private V item;
+//        private K key;
+//        private boolean isRemoved;
+//
+//        TableItem(K key, V item) {
+//            this.key = key;
+//            this.item = item;
+//            isRemoved = false;
+//        }
+//
+//        K getKey() {
+//            return key;
+//        }
+//
+//        V getItem() {
+//            return item;
+//        }
+//
+//        public String toString() {
+//            return key.toString()+" : "+item.toString();
+//        }
+//
+//    }
 
     private Object[] table;
     private int size;
@@ -75,6 +75,8 @@ public class DoubleHashTable<K extends HashValue, V> {
         }
         table[index] = new TableItem<K, V>(key, item);
         size++;
+//        System.out.println(table[index]);
+//        System.out.println(size());
     }
 
     private void expandTable() throws Exception{
@@ -93,7 +95,7 @@ public class DoubleHashTable<K extends HashValue, V> {
         int index = getHash(key.getHash());
         int step = getHashForStep(key.getHash());
         int startIndex = index;
-        while (index != startIndex) {
+        do {
             if (index >= table.length)
                 index = index % table.length;
             if(table[index] == null) {
@@ -108,7 +110,7 @@ public class DoubleHashTable<K extends HashValue, V> {
                 }
             }
             index += step;
-        }
+        } while (index != startIndex);
         return null;
     }
 
@@ -116,7 +118,7 @@ public class DoubleHashTable<K extends HashValue, V> {
         int index = getHash(key.getHash());
         int step = getHashForStep(key.getHash());
         int startIndex = index;
-        while (index != startIndex) {
+        do {
             if (index >= table.length)
                 index = index % table.length;
             if(table[index] == null) {
@@ -133,7 +135,7 @@ public class DoubleHashTable<K extends HashValue, V> {
                 }
             }
             index += step;
-        }
+        } while (index != startIndex);
     }
 
     public void change(K key1, K key2) throws Exception { // изменить значение ключа у элемента с key1 на key2
@@ -144,6 +146,11 @@ public class DoubleHashTable<K extends HashValue, V> {
 
     public int size() {
         return size;
+    }
+
+    @Override
+    public Iterator<TableItem<K, V>> iterator() {
+        return getIterator();
     }
 
     class HashTableIterator implements Iterator<TableItem<K,V>> {
@@ -182,27 +189,51 @@ public class DoubleHashTable<K extends HashValue, V> {
     }
 
     public static void main(String[] args) throws Exception {
-        DoubleHashTable<KeyInteger, Integer> intHashTable = new DoubleHashTable<>();
-        for(int i = 0; i < 101; i++) {
-            intHashTable.add(new KeyInteger(i), i);
-        }
-        intHashTable.add(new KeyInteger(101), 101);
-        intHashTable.remove(new KeyInteger(50));
-        intHashTable.change(new KeyInteger(45), new KeyInteger(55));
+//        DoubleHashTable<KeyInteger, Integer> intHashTable = new DoubleHashTable<>();
+//        for(int i = 0; i < 101; i++) {
+//            intHashTable.add(new KeyInteger(i), i);
+//        }
+//        intHashTable.add(new KeyInteger(101), 101);
+//        intHashTable.remove(new KeyInteger(50));
+//        intHashTable.change(new KeyInteger(45), new KeyInteger(55));
+//
+//        for(int i = 0; i < 199; i++) {
+//            System.out.println(intHashTable.get(new KeyInteger(i)));
+//        }
+//
+//        for(int i = 0; i < 199; i++) {
+//            if((intHashTable.table[i]) != null)
+//                System.out.println(i + " " + ((DoubleHashTable.TableItem)intHashTable.table[i]).getItem());
+//        }
+//
+//        Iterator iterator = intHashTable.getIterator();
+//        while (iterator.hasNext()) {
+//            DoubleHashTable.TableItem item = (DoubleHashTable.TableItem)iterator.next();
+//            System.out.println(item.getItem());
+//        }
 
-        for(int i = 0; i < 199; i++) {
-            System.out.println(intHashTable.get(new KeyInteger(i)));
+        DoubleHashTable<KeyInteger, String> table = new DoubleHashTable<>();
+        for(int i=0; i<10; i++) {
+            table.add(new KeyInteger(i), "i="+i);
         }
-
-        for(int i = 0; i < 199; i++) {
-            if((intHashTable.table[i]) != null)
-                System.out.println(i + " " + ((DoubleHashTable.TableItem)intHashTable.table[i]).getItem());
+        for(int i=0; i<10; i++) {
+            System.out.println(table.get(new KeyInteger(i)));
         }
+        System.out.println();
 
-        Iterator iterator = intHashTable.getIterator();
-        while (iterator.hasNext()) {
-            DoubleHashTable.TableItem item = (DoubleHashTable.TableItem)iterator.next();
-            System.out.println(item.getItem());
+        for (TableItem item : table) {
+            System.out.println(item);
+        }
+        System.out.println();
+
+        Iterator<TableItem<KeyInteger, String>> iterator = table.iterator();
+        while (iterator.hasNext()){
+            System.out.println(iterator.next());
+        }
+        System.out.println();
+        for(int i=0; i<10; i++) {
+            table.remove(new KeyInteger(i));
+            System.out.println(table.size());
         }
     }
 }
