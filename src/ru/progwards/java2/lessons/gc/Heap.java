@@ -9,6 +9,7 @@ public class Heap {
 
     public int malloc(int size) {
         return 0;
+
     }
 
 }
