@@ -20,15 +20,12 @@ public class Calculator2Test {
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         Object[][] data = new Object[][]{{ "1+2", 3 },
-                { "2*2", 4 }, {"5*5", 101}};
+                { "2*2", 4 }, {"5*5", 25}};
         return Arrays.asList(data);
     }
 
     @Test
     public void testCalculate() throws Exception {
-//        int actual = Calculator2.calculate("1+1");
-//        int expected = 2;
-
         Assert.assertEquals(result, Calculator2.calculate(expression));
     }
 }
