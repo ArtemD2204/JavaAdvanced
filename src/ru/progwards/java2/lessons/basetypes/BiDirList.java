@@ -84,10 +84,14 @@ public class BiDirList<T> implements Iterable<T> {
                 ListItem<T> prevItem = current.getPrev();
                 if(prevItem != null) {
                     prevItem.setNext(current.getNext());
+                } else {
+                    head = current.getNext();
                 }
                 ListItem<T> nextItem = current.getNext();
                 if(nextItem != null) {
                     nextItem.setPrev(current.getPrev());
+                } else {
+                    tail = current.getPrev();
                 }
                 return;
             }
@@ -176,13 +180,16 @@ public class BiDirList<T> implements Iterable<T> {
     public static void main(String[] args) {
 
         BiDirList<Integer> list = new BiDirList<>();
-        for(int i = 0; i < 101; i++) {
-            list.addFirst(i);
+        for(int i = 0; i < 11; i++) {
+            list.addLast(i);
         }
 
         for (Integer i:list) {
             System.out.println(i);
         }
+        System.out.println();
+
+        list.remove(list.getHead().getItem());
 
         Iterator<Integer> iterator = list.iterator();
         while (iterator.hasNext()){
