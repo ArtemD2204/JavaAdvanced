@@ -1,6 +1,5 @@
 package ru.progwards.java2.lessons.gc;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -102,49 +101,46 @@ public class Heap {
     }
 
     public void compact() {
+        if (usedBlocks.size() == 0) {
+            freeBlocks.clear();
+            freeBlocks.add(new MemoryBlock(0, heapSize));
+            return;
+        }
+        MemoryBlock firstBlock = usedBlocks.get(0);
+        int diff = firstBlock.pointer;
+        if (diff > 0) {
+            moveUsedBlock(firstBlock, diff);
+        }
+        if (usedBlocks.size() == 1) {
+            addRemainedMemoryToFreeBlocksList();
+            return;
+        }
+
         ListIterator<MemoryBlock> listIterator = usedBlocks.listIterator();
         MemoryBlock prevBlock = listIterator.next();
         MemoryBlock currBlock;
         while (listIterator.hasNext()) {
             currBlock = listIterator.next();
-            int diff = currBlock.pointer - (prevBlock.pointer + prevBlock.size);
+            diff = currBlock.pointer - (prevBlock.pointer + prevBlock.size);
             if (diff > 0) {
-                for(int i = currBlock.pointer; i < (currBlock.pointer + currBlock.size); i++) {
-                    bytes[i-diff] = bytes[i];
-                }
-                currBlock.pointer = prevBlock.pointer + prevBlock.size;
+                moveUsedBlock(currBlock, diff);
             }
             prevBlock = currBlock;
         }
+        addRemainedMemoryToFreeBlocksList();
     }
 
-
-
-    public static void main(String[] args) {
-        List<Integer> list = new LinkedList<>();
-        for(int i = 10; i < 21; i++) {
-            list.add(i);
+    private void moveUsedBlock(MemoryBlock block, int diff) {
+        for(int i = block.pointer; i < (block.pointer + block.size); i++) {
+            bytes[i-diff] = bytes[i];
         }
-
-        ListIterator<Integer> listIterator = list.listIterator();
-        System.out.println(list);
-        System.out.println(listIterator.next());
-        System.out.println(listIterator.next());
-        System.out.println(listIterator.nextIndex());
-        listIterator.add(100);
-        System.out.println(list);
-        System.out.println(listIterator.nextIndex());
-        System.out.println(listIterator.next());
-//        System.out.println(listIterator.nextIndex());
-        System.out.println("/////////////////");
-        System.out.println(listIterator.previousIndex());
-        System.out.println(listIterator.previous());
-        listIterator.add(101);
-        System.out.println(list);
-        System.out.println(listIterator.next());
-        listIterator.remove();
-        System.out.println(list);
-        System.out.println(listIterator.next());
+        block.pointer -= diff;
     }
 
+    private void addRemainedMemoryToFreeBlocksList() {
+        freeBlocks.clear();
+        MemoryBlock lastUsedBlock = usedBlocks.get(usedBlocks.size()-1);
+        int ptr = lastUsedBlock.pointer + lastUsedBlock.size;
+        freeBlocks.add(new MemoryBlock(ptr, heapSize - ptr));
+    }
 }
