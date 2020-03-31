@@ -23,7 +23,7 @@ public class Heap {
     public int malloc(int size) throws OutOfMemoryException {
         int ptr = allocateForOneBlock(size);
         if (ptr == -1) {
-//            compact();
+            compact();
             ptr = allocateForOneBlock(size);
             if (ptr == -1) {
                 throw new OutOfMemoryException();
@@ -86,6 +86,40 @@ public class Heap {
         }
     }
 
+    public void defrag() {
+        ListIterator<MemoryBlock> listIterator = freeBlocks.listIterator();
+        MemoryBlock prevBlock = listIterator.next();
+        MemoryBlock currBlock;
+        while (listIterator.hasNext()) {
+            currBlock = listIterator.next();
+            if ((prevBlock.pointer + prevBlock.size) == currBlock.pointer) {
+                prevBlock.size += currBlock.size;
+                listIterator.remove();
+            } else {
+                prevBlock = currBlock;
+            }
+        }
+    }
+
+    public void compact() {
+        ListIterator<MemoryBlock> listIterator = usedBlocks.listIterator();
+        MemoryBlock prevBlock = listIterator.next();
+        MemoryBlock currBlock;
+        while (listIterator.hasNext()) {
+            currBlock = listIterator.next();
+            int diff = currBlock.pointer - (prevBlock.pointer + prevBlock.size);
+            if (diff > 0) {
+                for(int i = currBlock.pointer; i < (currBlock.pointer + currBlock.size); i++) {
+                    bytes[i-diff] = bytes[i];
+                }
+                currBlock.pointer = prevBlock.pointer + prevBlock.size;
+            }
+            prevBlock = currBlock;
+        }
+    }
+
+
+
     public static void main(String[] args) {
         List<Integer> list = new LinkedList<>();
         for(int i = 10; i < 21; i++) {
@@ -107,6 +141,10 @@ public class Heap {
         System.out.println(listIterator.previous());
         listIterator.add(101);
         System.out.println(list);
+        System.out.println(listIterator.next());
+        listIterator.remove();
+        System.out.println(list);
+        System.out.println(listIterator.next());
     }
 
 }
