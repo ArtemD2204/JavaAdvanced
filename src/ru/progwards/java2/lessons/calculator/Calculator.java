@@ -1,5 +1,8 @@
 package ru.progwards.java2.lessons.calculator;
 
+import ru.progwards.java2.lessons.gc.Heap;
+import ru.progwards.java2.lessons.gc.MemoryBlock;
+
 import java.util.LinkedList;
 import java.util.Scanner;
 
