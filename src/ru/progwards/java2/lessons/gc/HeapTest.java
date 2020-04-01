@@ -26,7 +26,7 @@ public class HeapTest {
     }
 
     static int getRandomSize() {
-        int n = Math.abs(ThreadLocalRandom.current().nextInt()%10);
+        int n = Math.abs(ThreadLocalRandom.current().nextInt() % 10);
         int size = Math.abs(ThreadLocalRandom.current().nextInt());
         if (n < 6)
             size %= maxSmall;
@@ -36,8 +36,8 @@ public class HeapTest {
             size %= maxBig;
         else
             size %= maxHuge;
-        if (size > maxSize-allocated)
-            size = maxSize-allocated;
+        if (size > maxSize - allocated)
+            size = maxSize - allocated;
         return size;
     }
 
@@ -50,43 +50,81 @@ public class HeapTest {
 
         long start = System.currentTimeMillis();
         // alloc and free 30% random
-        while ((maxSize - allocated) > maxSize/100000) {
+        while ((maxSize - allocated) > maxSize / 100000) {
             long lstart, lstop;
             int size = getRandomSize();
+
+            if (size < 1) {
+                continue;
+            }
+
             allocated += size;
             count++;
             lstart = System.currentTimeMillis();
-            try {
-                int ptr = heap.malloc(size);
+            int ptr = heap.malloc(size);
+            lstop = System.currentTimeMillis();
+            allocTime += lstop - lstart;
+            blocks.add(new Block(ptr, size));
+//            printRes(heap);
+            int n = Math.abs(ThreadLocalRandom.current().nextInt() % 5);
+            if (n == 0) {
+                n = Math.abs(ThreadLocalRandom.current().nextInt() % blocks.size());
+                Block block = blocks.get(n);
+                lstart = System.currentTimeMillis();
+                heap.free(block.ptr);
                 lstop = System.currentTimeMillis();
-                allocTime += lstop-lstart;
-                blocks.add(new Block(ptr, size));
-                int n = Math.abs(ThreadLocalRandom.current().nextInt()%5);
-                if (n == 0) {
-                    n = Math.abs(ThreadLocalRandom.current().nextInt()%blocks.size());
-                    Block block = blocks.get(n);
-                    lstart = System.currentTimeMillis();
-                    try {
-                        heap.free(block.ptr);
-                    } catch (InvalidPointerException e) {
-                        System.out.println(e);
-                    }
-                    lstop = System.currentTimeMillis();
-                    freeTime += lstop-lstart;
-                    allocated -= block.size;
-                    blocks.remove(n);
-                }
-                n = Math.abs(ThreadLocalRandom.current().nextInt()%100000);
-                if (n==0)
-                    System.out.println(maxSize-allocated);
-            } catch (OutOfMemoryException e) {
-                System.out.println(e);
+                freeTime += lstop - lstart;
+                allocated -= block.size;
+                blocks.remove(n);
+//                System.out.println(block.size);
+//                printRes(heap);
             }
+            n = Math.abs(ThreadLocalRandom.current().nextInt() % 100000);
+            if (n == 0)
+                System.out.println(maxSize - allocated);
 
         }
         long stop = System.currentTimeMillis();
-        System.out.println(maxSize-allocated);
-        System.out.println("malloc time: "+allocTime+" free time: "+freeTime);
-        System.out.println("total time: "+(stop-start)+" count: "+count);
+        System.out.println(maxSize - allocated);
+//        System.out.println(heap.freeBlocks.stream().reduce((int a, MemoryBlock block) -> {
+//            return a + block.size;
+//        }));
+        System.out.println("malloc time: " + allocTime + " free time: " + freeTime);
+        System.out.println("total time: " + (stop - start) + " count: " + count);
+    }
+
+    private static void printRes(Heap heap) {
+        int freeMemory = 0;
+        for (MemoryBlock block : heap.freeBlocks) {
+            freeMemory += block.size;
+        }
+        int freeMemoryDiff = (maxSize - allocated) - freeMemory;
+        System.out.println("free memory:" + " " + (maxSize - allocated) + " - " + freeMemory + " = " + freeMemoryDiff);
+        int allocMemory = 0;
+        for (MemoryBlock block : heap.usedBlocks) {
+            allocMemory += block.size;
+        }
+        int allocMemoryDiff = allocated - allocMemory;
+        System.out.println("allocated memory:" + " " + allocated + " - " + allocMemory + " = " + allocMemoryDiff);
+        if (freeMemoryDiff != 0) {
+            throw new RuntimeException("Free memory error!");
+        }
+        if (allocMemoryDiff != 0) {
+            throw new RuntimeException("Allocated memory error!");
+        }
+//        heap.compact();
+//        System.out.println("After compact()");
+//        freeMemoryDiff = (maxSize - allocated) - heap.freeBlocks.get(0).size;
+//        System.out.println("free memory:" + " " + (maxSize - allocated) + " - " + heap.freeBlocks.get(0).size + " = " + freeMemoryDiff);
+//        MemoryBlock lastUsedBlock = heap.usedBlocks.get(heap.usedBlocks.size() - 1);
+//        allocMemoryDiff = allocated  - (lastUsedBlock.pointer + lastUsedBlock.size);
+//        System.out.println("allocated memory:" + " " + (allocated) + " - " + (lastUsedBlock.pointer + lastUsedBlock.size) + " = " + allocMemoryDiff);
+//        if (freeMemoryDiff != 0) {
+//            throw new RuntimeException("Free memory error!");
+//        }
+//        if (allocMemoryDiff != 0) {
+//            throw new RuntimeException("Allocated memory error!");
+//        }
+        System.out.println("-----------------------------------");
     }
 }

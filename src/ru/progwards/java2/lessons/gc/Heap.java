@@ -1,5 +1,6 @@
 package ru.progwards.java2.lessons.gc;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -8,8 +9,11 @@ public class Heap {
 
     private int heapSize;
     private byte[] bytes;
-    private List<MemoryBlock> freeBlocks;
-    private List<MemoryBlock> usedBlocks;
+    List<MemoryBlock> freeBlocks;
+    List<MemoryBlock> usedBlocks;
+
+    private List<Integer> pointersWasAlloc = new LinkedList<>();
+    private List<Integer> pointersWasFree = new LinkedList<>();
 
     public Heap(int maxHeapSize) {
         heapSize = maxHeapSize;
@@ -21,18 +25,20 @@ public class Heap {
 
     public int malloc(int size) throws OutOfMemoryException {
         int ptr = allocateForOneBlock(size);
-        if (ptr == -1) {
-            compact();
-            ptr = allocateForOneBlock(size);
+//        if (ptr == -1) {
+//            System.out.println("\n =====compact() method was called===== \n");
+//            compact();
+//            ptr = allocateForOneBlock(size);
             if (ptr == -1) {
                 throw new OutOfMemoryException();
             }
-        }
+//        }
+        pointersWasAlloc.add(ptr);
         return ptr;
     }
 
     private int allocateForOneBlock(int size) {
-        MemoryBlock suitableBlock = freeBlocks.get(0);
+        MemoryBlock suitableBlock = null;
         ListIterator<MemoryBlock> listIterator = freeBlocks.listIterator();
         MemoryBlock block;
         while (listIterator.hasNext()) {
@@ -42,10 +48,13 @@ public class Heap {
                 listIterator.remove();
                 return block.pointer;
             }
-            if(block.size > size && block.size < suitableBlock.size)
-                suitableBlock = block;
+            if(block.size > size) {
+                if(suitableBlock == null || block.size < suitableBlock.size) {
+                    suitableBlock = block;
+                }
+            }
         }
-        if (suitableBlock.size < size) {
+        if (suitableBlock == null) {
             return -1;
         }
         MemoryBlock used = new MemoryBlock(suitableBlock.pointer, size);
@@ -67,19 +76,30 @@ public class Heap {
                 return;
             }
         }
+        list.add(blockToAdd);
     }
 
     public void free(int ptr) throws InvalidPointerException {
+//        System.out.println("\n" + "====free() method was called====" + "\n");
         ListIterator<MemoryBlock> listIterator = usedBlocks.listIterator();
         MemoryBlock block;
         while (listIterator.hasNext()) {
             block = listIterator.next();
             if (block.pointer == ptr) {
-                listIterator.remove();
                 addBlockToList(block, freeBlocks);
+                listIterator.remove();
+                pointersWasFree.add(ptr);
                 return;
             }
             if (ptr < block.pointer) {
+                System.out.println("pointer:" + ptr);
+                System.out.println("Used Blocks:");
+                usedBlocks.forEach(x -> System.out.print(x.pointer + ":" + x.size + ":" + (x.pointer + x.size) + "; "));
+                System.out.println("");
+                pointersWasAlloc.sort(Integer::compare);
+                pointersWasFree.sort(Integer::compare);
+                System.out.println("Alloc all time: " + pointersWasAlloc);
+                System.out.println("Free all time: " + pointersWasFree);
                 throw new InvalidPointerException();
             }
         }
