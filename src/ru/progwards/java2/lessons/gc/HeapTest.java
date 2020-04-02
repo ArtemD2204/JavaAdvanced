@@ -41,7 +41,7 @@ public class HeapTest {
         return size;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws OutOfMemoryException, InvalidPointerException {
         Heap heap = new Heap(maxSize);
         List<Block> blocks = new ArrayList<>();
         int count = 0;
@@ -61,7 +61,17 @@ public class HeapTest {
             allocated += size;
             count++;
             lstart = System.currentTimeMillis();
-            int ptr = heap.malloc(size);
+            int ptr;
+            try {
+                ptr = heap.malloc(size);
+            } catch (OutOfMemoryException e) {
+                heap.compact();
+                blocks = new ArrayList<>();
+                for (MemoryBlock block : heap.usedBlocks) {
+                    blocks.add(new Block(block.pointer, block.size));
+                }
+                ptr = heap.malloc(size);
+            }
             lstop = System.currentTimeMillis();
             allocTime += lstop - lstart;
             blocks.add(new Block(ptr, size));
@@ -91,6 +101,7 @@ public class HeapTest {
 //        }));
         System.out.println("malloc time: " + allocTime + " free time: " + freeTime);
         System.out.println("total time: " + (stop - start) + " count: " + count);
+        printRes(heap);
     }
 
     private static void printRes(Heap heap) {
