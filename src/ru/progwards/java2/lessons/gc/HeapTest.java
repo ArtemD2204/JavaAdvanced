@@ -75,7 +75,6 @@ public class HeapTest {
             lstop = System.currentTimeMillis();
             allocTime += lstop - lstart;
             blocks.add(new Block(ptr, size));
-//            printRes(heap);
             int n = Math.abs(ThreadLocalRandom.current().nextInt() % 5);
             if (n == 0) {
                 n = Math.abs(ThreadLocalRandom.current().nextInt() % blocks.size());
@@ -86,8 +85,6 @@ public class HeapTest {
                 freeTime += lstop - lstart;
                 allocated -= block.size;
                 blocks.remove(n);
-//                System.out.println(block.size);
-//                printRes(heap);
             }
             n = Math.abs(ThreadLocalRandom.current().nextInt() % 100000);
             if (n == 0)
@@ -123,19 +120,5 @@ public class HeapTest {
         if (allocMemoryDiff != 0) {
             throw new RuntimeException("Allocated memory error!");
         }
-//        heap.compact();
-//        System.out.println("After compact()");
-//        freeMemoryDiff = (maxSize - allocated) - heap.freeBlocks.get(0).size;
-//        System.out.println("free memory:" + " " + (maxSize - allocated) + " - " + heap.freeBlocks.get(0).size + " = " + freeMemoryDiff);
-//        MemoryBlock lastUsedBlock = heap.usedBlocks.get(heap.usedBlocks.size() - 1);
-//        allocMemoryDiff = allocated  - (lastUsedBlock.pointer + lastUsedBlock.size);
-//        System.out.println("allocated memory:" + " " + (allocated) + " - " + (lastUsedBlock.pointer + lastUsedBlock.size) + " = " + allocMemoryDiff);
-//        if (freeMemoryDiff != 0) {
-//            throw new RuntimeException("Free memory error!");
-//        }
-//        if (allocMemoryDiff != 0) {
-//            throw new RuntimeException("Allocated memory error!");
-//        }
-        System.out.println("-----------------------------------");
     }
 }

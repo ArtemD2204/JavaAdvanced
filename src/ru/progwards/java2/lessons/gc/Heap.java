@@ -9,13 +9,9 @@ public class Heap {
     ArrayList<MemoryBlock> freeBlocks;
     TreeSet<MemoryBlock> usedBlocks;
 
-    private List<Integer> pointersWasAlloc = new LinkedList<>();
-    private List<Integer> pointersWasFree = new LinkedList<>();
-
     public Heap(int maxHeapSize) {
         heapSize = maxHeapSize;
         bytes = new byte[maxHeapSize];
-//        freeBlocks = new TreeSet<>(Comparator.comparingInt(block -> block.size));
         freeBlocks = new ArrayList<>();
         freeBlocks.add(new MemoryBlock(0, maxHeapSize));
         usedBlocks = new TreeSet<>(Comparator.comparingInt(block -> block.pointer));
@@ -31,12 +27,10 @@ public class Heap {
             throw new OutOfMemoryException();
         }
 //        }
-        pointersWasAlloc.add(ptr);
         return ptr;
     }
 
     private int allocateForOneBlock(int size) {
-//        MemoryBlock suitableBlock = freeBlocks.ceiling(new MemoryBlock(0, size));
         int indexOfSuitableBlock = binarySearchHighOrEquals(freeBlocks, size);
         MemoryBlock suitableBlock = freeBlocks.get(indexOfSuitableBlock);
 
@@ -83,31 +77,12 @@ public class Heap {
     }
 
     public void free(int ptr) throws InvalidPointerException {
-//        System.out.println("\n" + "====free() method was called====" + "\n");
         MemoryBlock block = usedBlocks.ceiling(new MemoryBlock(ptr, 0));
         if (block != null && block.pointer == ptr) {
             freeBlocks.add(block);
             freeBlocks.sort(Comparator.comparingInt(b -> b.size));
             usedBlocks.remove(block);
-            pointersWasFree.add(ptr);
-
-//            System.out.println("pointer:" + block.pointer);
-//            System.out.println("size:" + block.size);
-//            System.out.println("Free Blocks:");
-//            freeBlocks.forEach(x -> System.out.print(x.pointer + ":" + x.size + ":" + (x.pointer + x.size) + "; "));
-//            System.out.println("");
             return;
-        }
-        if (block != null && ptr < block.pointer) {
-            System.out.println("pointer:" + ptr);
-            System.out.println("Used Blocks:");
-            usedBlocks.forEach(x -> System.out.print(x.pointer + ":" + x.size + ":" + (x.pointer + x.size) + "; "));
-            System.out.println("");
-            pointersWasAlloc.sort(Integer::compare);
-            pointersWasFree.sort(Integer::compare);
-            System.out.println("Alloc all time: " + pointersWasAlloc);
-            System.out.println("Free all time: " + pointersWasFree);
-            throw new InvalidPointerException();
         }
         throw new InvalidPointerException();
     }
