@@ -61,17 +61,7 @@ public class HeapTest {
             allocated += size;
             count++;
             lstart = System.currentTimeMillis();
-            int ptr;
-            try {
-                ptr = heap.malloc(size);
-            } catch (OutOfMemoryException e) {
-                heap.compact();
-                blocks = new ArrayList<>();
-                for (MemoryBlock block : heap.usedBlocks) {
-                    blocks.add(new Block(block.pointer, block.size));
-                }
-                ptr = heap.malloc(size);
-            }
+            int ptr = heap.malloc(size);
             lstop = System.currentTimeMillis();
             allocTime += lstop - lstart;
             blocks.add(new Block(ptr, size));
@@ -93,12 +83,9 @@ public class HeapTest {
         }
         long stop = System.currentTimeMillis();
         System.out.println(maxSize - allocated);
-//        System.out.println(heap.freeBlocks.stream().reduce((int a, MemoryBlock block) -> {
-//            return a + block.size;
-//        }));
         System.out.println("malloc time: " + allocTime + " free time: " + freeTime);
         System.out.println("total time: " + (stop - start) + " count: " + count);
-        printRes(heap);
+//        printRes(heap);
     }
 
     private static void printRes(Heap heap) {
@@ -109,7 +96,7 @@ public class HeapTest {
         int freeMemoryDiff = (maxSize - allocated) - freeMemory;
         System.out.println("free memory:" + " " + (maxSize - allocated) + " - " + freeMemory + " = " + freeMemoryDiff);
         int allocMemory = 0;
-        for (MemoryBlock block : heap.usedBlocks) {
+        for (MemoryBlock block : heap.usedBlocks.values()) {
             allocMemory += block.size;
         }
         int allocMemoryDiff = allocated - allocMemory;

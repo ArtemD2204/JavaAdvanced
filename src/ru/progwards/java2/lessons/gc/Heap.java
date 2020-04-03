@@ -7,48 +7,46 @@ public class Heap {
     private int heapSize;
     private byte[] bytes;
     ArrayList<MemoryBlock> freeBlocks;
-    TreeSet<MemoryBlock> usedBlocks;
+    TreeMap<Integer, MemoryBlock> usedBlocks;
 
     public Heap(int maxHeapSize) {
         heapSize = maxHeapSize;
         bytes = new byte[maxHeapSize];
         freeBlocks = new ArrayList<>();
         freeBlocks.add(new MemoryBlock(0, maxHeapSize));
-        usedBlocks = new TreeSet<>(Comparator.comparingInt(block -> block.pointer));
+        usedBlocks = new TreeMap<>(Integer::compare);
     }
 
     public int malloc(int size) throws OutOfMemoryException {
         int ptr = allocateForOneBlock(size);
-//        if (ptr == -1) {
-//            System.out.println("\n =====compact() method was called===== \n");
-//            compact();
-//            ptr = allocateForOneBlock(size);
         if (ptr == -1) {
-            throw new OutOfMemoryException();
+            compact();
+            ptr = allocateForOneBlock(size);
+            if (ptr == -1) {
+                throw new OutOfMemoryException();
+            }
         }
-//        }
         return ptr;
     }
 
     private int allocateForOneBlock(int size) {
         int indexOfSuitableBlock = binarySearchHighOrEquals(freeBlocks, size);
-        MemoryBlock suitableBlock = freeBlocks.get(indexOfSuitableBlock);
-
         if (indexOfSuitableBlock == -1) {
             return -1;
         }
 
+        MemoryBlock suitableBlock = freeBlocks.get(indexOfSuitableBlock);
         if (suitableBlock.size == size) {
-            usedBlocks.add(suitableBlock);
+            usedBlocks.put(suitableBlock.pointer, suitableBlock);
             freeBlocks.remove(indexOfSuitableBlock);
             return suitableBlock.pointer;
         }
 
         MemoryBlock used = new MemoryBlock(suitableBlock.pointer, size);
-        usedBlocks.add(used);
+        usedBlocks.put(used.pointer, used);
         suitableBlock.pointer = suitableBlock.pointer + size;
         suitableBlock.size = suitableBlock.size - size;
-        if (suitableBlock.size < 1) {
+        if (suitableBlock.size == 0) {
             freeBlocks.remove(indexOfSuitableBlock);
         } else {
             freeBlocks.sort(Comparator.comparingInt(block -> block.size));
@@ -59,7 +57,7 @@ public class Heap {
     private int binarySearchHighOrEquals(List<MemoryBlock> list, int size) {
         int index = -1;
         int low = 0;
-        int high = list.size()-1;
+        int high = list.size() - 1;
         while (low <= high) {
             int mid = (low + high) / 2;
             MemoryBlock block = list.get(mid);
@@ -68,7 +66,7 @@ public class Heap {
             } else if (block.size > size) {
                 high = mid - 1;
                 index = mid;
-            } else if (block.size == size) {
+            } else {
                 index = mid;
                 break;
             }
@@ -77,32 +75,29 @@ public class Heap {
     }
 
     public void free(int ptr) throws InvalidPointerException {
-        MemoryBlock block = usedBlocks.ceiling(new MemoryBlock(ptr, 0));
-        if (block != null && block.pointer == ptr) {
-            freeBlocks.add(block);
-            freeBlocks.sort(Comparator.comparingInt(b -> b.size));
-            usedBlocks.remove(block);
-            return;
+        MemoryBlock block = usedBlocks.get(ptr);
+        if (block == null) {
+            throw new InvalidPointerException();
         }
-        throw new InvalidPointerException();
+        freeBlocks.add(block);
+        freeBlocks.sort(Comparator.comparingInt(b -> b.size));
+        usedBlocks.remove(ptr);
     }
 
-
-
-//    public void defrag() {
-//        ListIterator<MemoryBlock> listIterator = freeBlocks.listIterator();
-//        MemoryBlock prevBlock = listIterator.next();
-//        MemoryBlock currBlock;
-//        while (listIterator.hasNext()) {
-//            currBlock = listIterator.next();
-//            if ((prevBlock.pointer + prevBlock.size) == currBlock.pointer) {
-//                prevBlock.size += currBlock.size;
-//                listIterator.remove();
-//            } else {
-//                prevBlock = currBlock;
-//            }
-//        }
-//    }
+    public void defrag() {
+        ListIterator<MemoryBlock> listIterator = freeBlocks.listIterator();
+        MemoryBlock prevBlock = listIterator.next();
+        MemoryBlock currBlock;
+        while (listIterator.hasNext()) {
+            currBlock = listIterator.next();
+            if ((prevBlock.pointer + prevBlock.size) == currBlock.pointer) {
+                prevBlock.size += currBlock.size;
+                listIterator.remove();
+            } else {
+                prevBlock = currBlock;
+            }
+        }
+    }
 
     public void compact() {
         if (usedBlocks.size() == 0) {
@@ -110,7 +105,7 @@ public class Heap {
             freeBlocks.add(new MemoryBlock(0, heapSize));
             return;
         }
-        MemoryBlock firstBlock = usedBlocks.first();
+        MemoryBlock firstBlock = usedBlocks.firstEntry().getValue();
         int diff = firstBlock.pointer;
         if (diff > 0) {
             moveUsedBlock(firstBlock, diff);
@@ -120,16 +115,13 @@ public class Heap {
             return;
         }
 
-        Iterator<MemoryBlock> iterator = usedBlocks.iterator();
-        MemoryBlock prevBlock = iterator.next();
-        MemoryBlock currBlock;
-        while (iterator.hasNext()) {
-            currBlock = iterator.next();
-            diff = currBlock.pointer - (prevBlock.pointer + prevBlock.size);
+        MemoryBlock prevBlock = firstBlock;
+        for (MemoryBlock currentBlock : usedBlocks.values()) {
+            diff = currentBlock.pointer - (prevBlock.pointer + prevBlock.size);
             if (diff > 0) {
-                moveUsedBlock(currBlock, diff);
+                moveUsedBlock(currentBlock, diff);
             }
-            prevBlock = currBlock;
+            prevBlock = currentBlock;
         }
         addRemainedMemoryToFreeBlocksList();
     }
@@ -143,8 +135,16 @@ public class Heap {
 
     private void addRemainedMemoryToFreeBlocksList() {
         freeBlocks.clear();
-        MemoryBlock lastUsedBlock = usedBlocks.last();
+        MemoryBlock lastUsedBlock = usedBlocks.lastEntry().getValue();
         int ptr = lastUsedBlock.pointer + lastUsedBlock.size;
         freeBlocks.add(new MemoryBlock(ptr, heapSize - ptr));
+    }
+
+    public void getBytes(int ptr, int size, byte[] bytes) {
+        System.arraycopy(this.bytes, ptr, bytes, 0, size);
+    }
+
+    public void setBytes(int ptr, int size, byte[] bytes) {
+        System.arraycopy(bytes, 0, this.bytes, ptr, size);
     }
 }
