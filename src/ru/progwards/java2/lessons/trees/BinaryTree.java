@@ -19,7 +19,7 @@ public class BinaryTree<K extends Comparable<K>, V> {
             this.value = value;
         }
 
-        private TreeLeaf<K,V> find(K key) {
+        private TreeLeaf<K, V> find(K key) {
             int cmp = key.compareTo(this.key);
             if (cmp > 0)
                 if (right != null)
@@ -64,10 +64,10 @@ public class BinaryTree<K extends Comparable<K>, V> {
         }
 
         public String toString() {
-            return "("+key+","+value+")";
+            return "(" + key + "," + value + ")";
         }
 
-        public void process(Consumer<TreeLeaf<K,V>> consumer) {
+        public void process(Consumer<TreeLeaf<K, V>> consumer) {
             if (left != null)
                 left.process(consumer);
             consumer.accept(this);
@@ -75,13 +75,14 @@ public class BinaryTree<K extends Comparable<K>, V> {
                 right.process(consumer);
         }
     }
+
     private TreeLeaf<K, V> root;
 
     public V find(K key) {
         if (root == null)
             return null;
         TreeLeaf found = root.find(key);
-        return found.key.compareTo(key) == 0 ? (V)found.value : null;
+        return found.key.compareTo(key) == 0 ? (V) found.value : null;
     }
 
     public void add(TreeLeaf<K, V> leaf) throws TreeException {
@@ -110,11 +111,12 @@ public class BinaryTree<K extends Comparable<K>, V> {
         if (found.parent == null) {
             if (found.right != null) {
                 root = found.right;
+                found.right.parent = null; // без этой строки не удаляется правое поддерево
                 if (found.left != null)
                     add(found.left);
-            } else if (found.left != null)
+            } else if (found.left != null) {
                 root = found.left;
-            else
+            } else
                 root = null;
         } else
             found.delete();
@@ -127,7 +129,7 @@ public class BinaryTree<K extends Comparable<K>, V> {
         add(current);
     }
 
-    public void process(Consumer<TreeLeaf<K,V>> consumer) {
+    public void process(Consumer<TreeLeaf<K, V>> consumer) {
         if (root != null)
             root.process(consumer);
     }
