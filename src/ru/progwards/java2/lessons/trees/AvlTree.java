@@ -18,7 +18,7 @@ public class AvlTree<K extends Comparable<K>, V> {
             this.value = value;
         }
 
-        private TreeLeaf<K,V> find(K key) {
+        private TreeLeaf<K, V> find(K key) {
             int cmp = key.compareTo(this.key);
             if (cmp > 0)
                 if (right != null)
@@ -54,7 +54,7 @@ public class AvlTree<K extends Comparable<K>, V> {
 
         private void recalcHeght() {
             AvlTree.TreeLeaf node = this;
-            while(node != null) {
+            while (node != null) {
                 int left = node.left == null ? 0 : node.left.height;
                 int right = node.right == null ? 0 : node.right.height;
                 node.height = Math.max(left, right) + 1;
@@ -74,7 +74,7 @@ public class AvlTree<K extends Comparable<K>, V> {
             // Малое правое вращение
             AvlTree.TreeLeaf b = left;
             AvlTree.TreeLeaf c = b.right;
-            if (((b.height-this.right.height) == 2) && c.height <= b.left.height) {
+            if (((b.height - this.right.height) == 2) && c.height <= b.left.height) {
                 left = c;
                 b.right = this;
                 b.parent = parent;
@@ -85,7 +85,7 @@ public class AvlTree<K extends Comparable<K>, V> {
             // Малое левое вращение
             b = right;
             c = b.left;
-            if (((b.height-this.left.height) == 2) && c.height <= b.right.height) {
+            if (((b.height - this.left.height) == 2) && c.height <= b.right.height) {
                 right = c;
                 b.left = this;
                 b.parent = parent;
@@ -100,7 +100,7 @@ public class AvlTree<K extends Comparable<K>, V> {
             AvlTree.TreeLeaf c = b.right;
             AvlTree.TreeLeaf n = c.right;
             AvlTree.TreeLeaf m = c.left;
-            if (((b.height-this.right.height) == 2) && c.height > b.left.height) {
+            if (((b.height - this.right.height) == 2) && c.height > b.left.height) {
                 left = n;
                 b.right = m;
                 c.right = this;
@@ -117,7 +117,7 @@ public class AvlTree<K extends Comparable<K>, V> {
             c = b.left;
             n = c.right;
             m = c.left;
-            if (((b.height-this.left.height) == 2) && c.height > b.right.height) {
+            if (((b.height - this.left.height) == 2) && c.height > b.right.height) {
                 right = m;
                 b.left = n;
                 c.left = this;
@@ -129,6 +129,7 @@ public class AvlTree<K extends Comparable<K>, V> {
                 m.parent = this;
             }
         }
+
         private void makeBallance() {
             AvlTree.TreeLeaf node = this;
             while (node != null) {
@@ -157,37 +158,47 @@ public class AvlTree<K extends Comparable<K>, V> {
             return node;
         }
 
-        void delete() throws TreeException {
+        void delete() {
             if (left != null || right != null) {
                 int ballance = getBallance();
-                AvlTree.TreeLeaf node;
-//                AvlTree.TreeLeaf nodeToStartBallance;
-                if (ballance > 0) {
-                    node = left.findMax();
-                    nodeToStartBallance
-                } else {
-                    node = right.findMin();
-
-                }
+                AvlTree.TreeLeaf node = ballance > 0 ? left.findMax() : right.findMin();
+                AvlTree.TreeLeaf nodeToStartBallance = node.parent;
+                // подставляем node на место this
+                // если у node есть потомки, то в subTreeToPaste сохраним поддерево удаляемого узла(this) для последующей вставки
+                AvlTree.TreeLeaf subTreeToPaste = null;
                 if (node.right == null)
                     node.right = right;
+                else
+                    subTreeToPaste = right;
                 if (node.left == null)
                     node.left = left;
+                else
+                    subTreeToPaste = left;
+                left = null;
+                right = null;
 
+                // удаляем ссылку у старого родителя на node
                 if (node.parent.right == node)
                     node.parent.right = null;
                 else
                     node.parent.left = null;
 
+                node.parent = parent;
                 if (parent != null) {
                     if (parent.right == this)
                         parent.right = node;
                     else
                         parent.left = node;
+                    parent = null;
+                } else {
+                    AvlTree.this.root = node;
                 }
-                node.parent = parent;
-                node.recalcHeght();
-                makeBallance(); // Для какого узла балансировку и пересчет высоты ?
+
+                if (subTreeToPaste != null)
+                    node.find(subTreeToPaste.key).put(subTreeToPaste);
+
+                nodeToStartBallance.recalcHeght();
+                nodeToStartBallance.makeBallance();
             } else {
                 if (parent != null) {
                     if (parent.right == this)
@@ -202,10 +213,10 @@ public class AvlTree<K extends Comparable<K>, V> {
         }
 
         public String toString() {
-            return "("+key+","+value+")";
+            return "(" + key + "," + value + ")";
         }
 
-        public void process(Consumer<TreeLeaf<K,V>> consumer) {
+        public void process(Consumer<TreeLeaf<K, V>> consumer) {
             if (left != null)
                 left.process(consumer);
             consumer.accept(this);
@@ -220,7 +231,7 @@ public class AvlTree<K extends Comparable<K>, V> {
         if (root == null)
             return null;
         TreeLeaf found = root.find(key);
-        return found.key.compareTo(key) == 0 ? (V)found.value : null;
+        return found.key.compareTo(key) == 0 ? (V) found.value : null;
     }
 
     public void put(TreeLeaf<K, V> leaf) {
@@ -246,19 +257,7 @@ public class AvlTree<K extends Comparable<K>, V> {
         int cmp = found.key.compareTo(key);
         if (cmp != 0)
             throw new TreeException(KEYNOTEXIST);
-//        if (found.parent == null) {
-//            if (found.right != null) {
-//                root = found.right;
-//                found.right.parent = null;  // без этой строки не удаляется правое поддерево
-//                if (found.left != null) {
-//                    put(found.left);
-//                }
-//            } else if (found.left != null) {
-//                root = found.left;
-//            } else
-//                root = null;
-//        } else
-            found.delete();
+        found.delete();
         return found;
     }
 
@@ -268,7 +267,7 @@ public class AvlTree<K extends Comparable<K>, V> {
         put(current);
     }
 
-    public void process(Consumer<TreeLeaf<K,V>> consumer) {
+    public void process(Consumer<TreeLeaf<K, V>> consumer) {
         if (root != null)
             root.process(consumer);
     }

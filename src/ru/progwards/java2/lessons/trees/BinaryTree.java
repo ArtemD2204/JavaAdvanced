@@ -111,11 +111,12 @@ public class BinaryTree<K extends Comparable<K>, V> {
         if (found.parent == null) {
             if (found.right != null) {
                 root = found.right;
-                found.right.parent = null; // без этой строки не удаляется правое поддерево
+                found.right.parent = null;
                 if (found.left != null)
                     add(found.left);
             } else if (found.left != null) {
                 root = found.left;
+
             } else
                 root = null;
         } else
