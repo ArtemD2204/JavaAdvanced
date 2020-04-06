@@ -188,6 +188,16 @@ public class AvlTree<K extends Comparable<K>, V> {
                 node.parent = parent;
                 node.recalcHeght();
                 makeBallance(); // Для какого узла балансировку и пересчет высоты ?
+            } else {
+                if (parent != null) {
+                    if (parent.right == this)
+                        parent.right = null;
+                    else
+                        parent.left = null;
+                    parent = null;
+                } else {
+                    AvlTree.this.root = null;
+                }
             }
         }
 
