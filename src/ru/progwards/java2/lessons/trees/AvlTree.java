@@ -62,7 +62,7 @@ public class AvlTree<K extends Comparable<K>, V> {
             }
         }
 
-        private int getBallance() {
+        int getBallance() {
             return getHeight(left) - getHeight(right);
         }
 
@@ -73,60 +73,102 @@ public class AvlTree<K extends Comparable<K>, V> {
         private void smallRotate() {
             // Малое правое вращение
             AvlTree.TreeLeaf b = left;
-            AvlTree.TreeLeaf c = b.right;
-            if (((b.height - this.right.height) == 2) && c.height <= b.left.height) {
+            AvlTree.TreeLeaf c = b==null ? null : b.right;
+            if (((getHeight(b) - getHeight(right)) == 2) && getHeight(c) <= getHeight(b.left)) {
                 left = c;
                 b.right = this;
                 b.parent = parent;
+                if (parent != null) {
+                    if (parent.right == this)
+                        parent.right = b;
+                    else
+                        parent.left = b;
+                }
                 parent = b;
-                c.parent = this;
+                if (c != null)
+                    c.parent = this;
+                if (root == this)
+                    root = b;
+                recalcHeght();
                 return;
             }
             // Малое левое вращение
             b = right;
-            c = b.left;
-            if (((b.height - this.left.height) == 2) && c.height <= b.right.height) {
+            c = b==null ? null : b.left;
+            if (((getHeight(b) - getHeight(left)) == 2) && getHeight(c) <= getHeight(b.right)) {
                 right = c;
                 b.left = this;
                 b.parent = parent;
+                if (parent != null) {
+                    if (parent.right == this)
+                        parent.right = b;
+                    else
+                        parent.left = b;
+                }
                 parent = b;
-                c.parent = this;
+                if (c != null)
+                    c.parent = this;
+                if (root == this)
+                    root = b;
+                recalcHeght();
             }
         }
 
         private void bigRotate() {
             // Большое правое вращение
             AvlTree.TreeLeaf b = left;
-            AvlTree.TreeLeaf c = b.right;
-            AvlTree.TreeLeaf n = c.right;
-            AvlTree.TreeLeaf m = c.left;
-            if (((b.height - this.right.height) == 2) && c.height > b.left.height) {
+            AvlTree.TreeLeaf c = b==null ? null : b.right;
+            AvlTree.TreeLeaf n = c==null ? null : c.right;
+            AvlTree.TreeLeaf m = c==null ? null : c.left;
+            if (((getHeight(b) - getHeight(right)) == 2) && getHeight(c) > getHeight(b.left)) {
                 left = n;
                 b.right = m;
                 c.right = this;
                 c.left = b;
                 c.parent = parent;
+                if (parent != null) {
+                    if (parent.right == this)
+                        parent.right = c;
+                    else
+                        parent.left = c;
+                }
                 parent = c;
                 b.parent = c;
-                n.parent = this;
-                m.parent = b;
+                if (n != null)
+                    n.parent = this;
+                if (m != null)
+                    m.parent = b;
+                if (root == this)
+                    root = c;
+                recalcHeght();
                 return;
             }
             // Большое левое вращение
             b = right;
             c = b.left;
-            n = c.right;
-            m = c.left;
-            if (((b.height - this.left.height) == 2) && c.height > b.right.height) {
+            n = c==null ? null : c.right;
+            m = c==null ? null : c.left;
+            if (((getHeight(b) - getHeight(left)) == 2) && getHeight(c) > getHeight(b.right)) {
                 right = m;
                 b.left = n;
                 c.left = this;
                 c.right = b;
                 c.parent = parent;
+                if (parent != null) {
+                    if (parent.right == this)
+                        parent.right = c;
+                    else
+                        parent.left = c;
+                }
                 parent = c;
                 b.parent = c;
-                n.parent = b;
-                m.parent = this;
+                if (n != null)
+                    n.parent = b;
+                if (m != null)
+                    m.parent = this;
+                if (root == this)
+                    root = c;
+                recalcHeght();
             }
         }
 
@@ -135,6 +177,8 @@ public class AvlTree<K extends Comparable<K>, V> {
             while (node != null) {
                 if (Math.abs(node.getBallance()) > 1) {
                     node.smallRotate();
+                }
+                if (Math.abs(node.getBallance()) > 1) {
                     node.bigRotate();
                 }
                 node = node.parent;
@@ -159,6 +203,10 @@ public class AvlTree<K extends Comparable<K>, V> {
         }
 
         void delete() {
+            System.out.println(this);
+//            System.out.println("root" + root);
+            System.out.println("root.left" + root.left);
+            System.out.println("root.left.left" + root.left.left + "   " + "root.left.right" + root.left.right);
             if (left != null || right != null) {
                 int ballance = getBallance();
                 AvlTree.TreeLeaf node = ballance > 0 ? left.findMax() : right.findMin();
