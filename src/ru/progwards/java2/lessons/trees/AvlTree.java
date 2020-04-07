@@ -40,24 +40,25 @@ public class AvlTree<K extends Comparable<K>, V> {
             } else if (cmp > 0) {
                 right = leaf;
                 leaf.parent = this;
-                leaf.height = 0;
-                recalcHeght();
+                leaf.height = 1;
+                recalcHeight();
                 makeBallance();
             } else {
                 left = leaf;
                 leaf.parent = this;
-                leaf.height = 0;
-                recalcHeght();
+                leaf.height = 1;
+                recalcHeight();
                 makeBallance();
             }
         }
 
-        private void recalcHeght() {
+        private void recalcHeight() {
             AvlTree.TreeLeaf node = this;
             while (node != null) {
-                int left = node.left == null ? 0 : node.left.height;
-                int right = node.right == null ? 0 : node.right.height;
+                int left = node.getHeight(node.left);
+                int right = node.getHeight(node.right);
                 node.height = Math.max(left, right) + 1;
+//                }
                 node = node.parent;
             }
         }
@@ -70,121 +71,132 @@ public class AvlTree<K extends Comparable<K>, V> {
             return node == null ? 0 : node.height;
         }
 
-        private void smallRotate() {
+        private void smallRightRotate() {
             // Малое правое вращение
             AvlTree.TreeLeaf b = left;
-            AvlTree.TreeLeaf c = b==null ? null : b.right;
-            if (((getHeight(b) - getHeight(right)) == 2) && getHeight(c) <= getHeight(b.left)) {
-                left = c;
-                b.right = this;
-                b.parent = parent;
-                if (parent != null) {
-                    if (parent.right == this)
-                        parent.right = b;
-                    else
-                        parent.left = b;
-                }
-                parent = b;
-                if (c != null)
-                    c.parent = this;
-                if (root == this)
-                    root = b;
-                recalcHeght();
-                return;
+            AvlTree.TreeLeaf c = b == null ? null : b.right;
+            left = c;
+            b.right = this;
+            b.parent = parent;
+            if (parent != null) {
+                if (parent.right == this)
+                    parent.right = b;
+                else
+                    parent.left = b;
             }
-            // Малое левое вращение
-            b = right;
-            c = b==null ? null : b.left;
-            if (((getHeight(b) - getHeight(left)) == 2) && getHeight(c) <= getHeight(b.right)) {
-                right = c;
-                b.left = this;
-                b.parent = parent;
-                if (parent != null) {
-                    if (parent.right == this)
-                        parent.right = b;
-                    else
-                        parent.left = b;
-                }
-                parent = b;
-                if (c != null)
-                    c.parent = this;
-                if (root == this)
-                    root = b;
-                recalcHeght();
-            }
+            parent = b;
+            if (c != null)
+                c.parent = this;
+            if (root == this)
+                root = b;
+            recalcHeight();
         }
 
-        private void bigRotate() {
+        private void smallLeftRotate() {
+            // Малое левое вращение
+            AvlTree.TreeLeaf b = right;
+            AvlTree.TreeLeaf c = b == null ? null : b.left;
+            right = c;
+            b.left = this;
+            b.parent = parent;
+            if (parent != null) {
+                if (parent.right == this)
+                    parent.right = b;
+                else
+                    parent.left = b;
+            }
+            parent = b;
+            if (c != null)
+                c.parent = this;
+            if (root == this)
+                root = b;
+            recalcHeight();
+        }
+
+        private void bigRightRotate() {
             // Большое правое вращение
             AvlTree.TreeLeaf b = left;
-            AvlTree.TreeLeaf c = b==null ? null : b.right;
-            AvlTree.TreeLeaf n = c==null ? null : c.right;
-            AvlTree.TreeLeaf m = c==null ? null : c.left;
-            if (((getHeight(b) - getHeight(right)) == 2) && getHeight(c) > getHeight(b.left)) {
-                left = n;
-                b.right = m;
-                c.right = this;
-                c.left = b;
-                c.parent = parent;
-                if (parent != null) {
-                    if (parent.right == this)
-                        parent.right = c;
-                    else
-                        parent.left = c;
-                }
-                parent = c;
-                b.parent = c;
-                if (n != null)
-                    n.parent = this;
-                if (m != null)
-                    m.parent = b;
-                if (root == this)
-                    root = c;
-                recalcHeght();
-                return;
+            AvlTree.TreeLeaf c = b == null ? null : b.right;
+            AvlTree.TreeLeaf n = c == null ? null : c.right;
+            AvlTree.TreeLeaf m = c == null ? null : c.left;
+            left = n;
+            b.right = m;
+            c.right = this;
+            c.left = b;
+            c.parent = parent;
+            if (parent != null) {
+                if (parent.right == this)
+                    parent.right = c;
+                else
+                    parent.left = c;
             }
+            parent = c;
+            b.parent = c;
+            if (n != null)
+                n.parent = this;
+            if (m != null)
+                m.parent = b;
+            if (root == this)
+                root = c;
+            recalcHeight();
+            b.recalcHeight();
+        }
+
+        private void bigLeftRotate() {
             // Большое левое вращение
-            b = right;
-            c = b.left;
-            n = c==null ? null : c.right;
-            m = c==null ? null : c.left;
-            if (((getHeight(b) - getHeight(left)) == 2) && getHeight(c) > getHeight(b.right)) {
-                right = m;
-                b.left = n;
-                c.left = this;
-                c.right = b;
-                c.parent = parent;
-                if (parent != null) {
-                    if (parent.right == this)
-                        parent.right = c;
-                    else
-                        parent.left = c;
-                }
-                parent = c;
-                b.parent = c;
-                if (n != null)
-                    n.parent = b;
-                if (m != null)
-                    m.parent = this;
-                if (root == this)
-                    root = c;
-                recalcHeght();
+            AvlTree.TreeLeaf b = right;
+            AvlTree.TreeLeaf c = b.left;
+            AvlTree.TreeLeaf n = c == null ? null : c.right;
+            AvlTree.TreeLeaf m = c == null ? null : c.left;
+            right = m;
+            b.left = n;
+            c.left = this;
+            c.right = b;
+            c.parent = parent;
+            if (parent != null) {
+                if (parent.right == this)
+                    parent.right = c;
+                else
+                    parent.left = c;
             }
+            parent = c;
+            b.parent = c;
+            if (n != null)
+                n.parent = b;
+            if (m != null)
+                m.parent = this;
+            if (root == this)
+                root = c;
+            recalcHeight();
+            b.recalcHeight();
         }
 
         private void makeBallance() {
             AvlTree.TreeLeaf node = this;
             while (node != null) {
                 if (Math.abs(node.getBallance()) > 1) {
-                    node.smallRotate();
-                }
-                if (Math.abs(node.getBallance()) > 1) {
-                    node.bigRotate();
+                    AvlTree.TreeLeaf b = node.left;
+                    AvlTree.TreeLeaf c = b == null ? null : b.right;
+                    if ((getHeight(b) - getHeight(node.right)) == 2) {
+                        if (getHeight(c) <= getHeight(b.left)) {
+                            node.smallRightRotate();
+                        } else {
+                            node.bigRightRotate();
+                        }
+                    }
+                    b = node.right;
+                    c = b == null ? null : b.left;
+                    if ((getHeight(b) - getHeight(node.left)) == 2) {
+                        if (getHeight(c) <= getHeight(b.right)) {
+                            node.smallLeftRotate();
+                        } else {
+                            node.bigLeftRotate();
+                        }
+                    }
                 }
                 node = node.parent;
             }
         }
-
 
         private TreeLeaf<K, V> findMin() {
             AvlTree.TreeLeaf node = this;
@@ -203,34 +215,31 @@ public class AvlTree<K extends Comparable<K>, V> {
         }
 
         void delete() {
-            System.out.println(this);
-//            System.out.println("root" + root);
-            System.out.println("root.left" + root.left);
-            System.out.println("root.left.left" + root.left.left + "   " + "root.left.right" + root.left.right);
+            // Если удаляемый узел не терминальный
             if (left != null || right != null) {
                 int ballance = getBallance();
                 AvlTree.TreeLeaf node = ballance > 0 ? left.findMax() : right.findMin();
-                AvlTree.TreeLeaf nodeToStartBallance = node.parent;
+                // с узла nodeToStartBallance начинаем пересчет высот и балансировку при необходимости
+                AvlTree.TreeLeaf nodeToStartBallance = this == node.parent ? node : node.parent;
                 // подставляем node на место this
                 // если у node есть потомки, то в subTreeToPaste сохраним поддерево удаляемого узла(this) для последующей вставки
                 AvlTree.TreeLeaf subTreeToPaste = null;
                 if (node.right == null)
-                    node.right = right;
+                    node.right = node != right ? right : null;
                 else
                     subTreeToPaste = right;
                 if (node.left == null)
-                    node.left = left;
+                    node.left = node != left ? left : null;
                 else
                     subTreeToPaste = left;
                 left = null;
                 right = null;
-
                 // удаляем ссылку у старого родителя на node
                 if (node.parent.right == node)
                     node.parent.right = null;
                 else
                     node.parent.left = null;
-
+                // добавляем нового родителя у node
                 node.parent = parent;
                 if (parent != null) {
                     if (parent.right == this)
@@ -241,19 +250,21 @@ public class AvlTree<K extends Comparable<K>, V> {
                 } else {
                     AvlTree.this.root = node;
                 }
-
                 if (subTreeToPaste != null)
                     node.find(subTreeToPaste.key).put(subTreeToPaste);
-
-                nodeToStartBallance.recalcHeght();
+                nodeToStartBallance.recalcHeight();
                 nodeToStartBallance.makeBallance();
             } else {
+                // else - иначе удаляемый узел терминальный
                 if (parent != null) {
+                    AvlTree.TreeLeaf nodeToStartBallance = parent;
                     if (parent.right == this)
                         parent.right = null;
                     else
                         parent.left = null;
                     parent = null;
+                    nodeToStartBallance.recalcHeight();
+                    nodeToStartBallance.makeBallance();
                 } else {
                     AvlTree.this.root = null;
                 }
@@ -273,7 +284,7 @@ public class AvlTree<K extends Comparable<K>, V> {
         }
     }
 
-    private TreeLeaf<K, V> root;
+    TreeLeaf<K, V> root;
 
     public V find(K key) {
         if (root == null)
@@ -318,5 +329,25 @@ public class AvlTree<K extends Comparable<K>, V> {
     public void process(Consumer<TreeLeaf<K, V>> consumer) {
         if (root != null)
             root.process(consumer);
+    }
+
+    private void printTree() {
+        System.out.println("                         " + (root));
+        System.out.println("                 " + getChildren(root));
+        if (root != null)
+            System.out.println("          " + getChildren(root.left) + " " + getChildren(root.right));
+        if (root.left != null)
+            System.out.print(getChildren(root.left.left) + " " + getChildren(root.left.right));
+        if (root.right != null)
+            System.out.println("   " + getChildren(root.right.left) + " " + getChildren(root.right.right));
+        System.out.println("--------------------------");
+    }
+
+    private String getChildren(TreeLeaf node) {
+        if (node == null)
+            return "null    null";
+        String left = node.left == null ? "null" : node.left.toString();
+        String right = node.right == null ? "null" : node.right.toString();
+        return left + " " + right;
     }
 }

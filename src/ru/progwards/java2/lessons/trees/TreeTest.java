@@ -14,7 +14,7 @@ public class TreeTest {
         BinaryTree<Integer, String> tree = new BinaryTree<>();
         AvlTree<Integer, String> avlTree = new AvlTree<>();
         for(int i=0; i<ITERATIONS; i++) {
-            int key = ThreadLocalRandom.current().nextInt() % 10;
+            int key = ThreadLocalRandom.current().nextInt();
 //            if (!map.containsKey(key)) {
 //                map.put(key, key);
 //                tree.add(key, "key=" + key);
