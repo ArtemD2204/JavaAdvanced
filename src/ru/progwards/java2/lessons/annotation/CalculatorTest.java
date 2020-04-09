@@ -14,14 +14,14 @@ public class CalculatorTest {
         System.out.println("Before invoked");
     }
 
-    @Test(priority = 1)
+    @Test(priority = 5)
     public void sumTest(){
         Mockito.when(calculator.sum(5,10)).thenReturn(15);
         int actual = calculator.sum(5,10);
         int expected = 15;
 
         Assert.assertEquals(expected, actual);
-        System.out.println("Test 1 invoked");
+        System.out.println("Test 5 invoked");
     }
 
     @Test(priority = 2)

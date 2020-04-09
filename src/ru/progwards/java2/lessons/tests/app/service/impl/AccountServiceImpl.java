@@ -1,9 +1,11 @@
 package ru.progwards.java2.lessons.tests.app.service.impl;
 
+import ru.progwards.java2.lessons.annotation.Dependency;
 import ru.progwards.java2.lessons.tests.app.model.Account;
 import ru.progwards.java2.lessons.tests.app.service.AccountService;
 import ru.progwards.java2.lessons.tests.app.service.StoreService;
 
+@Dependency(name = "ru.progwards.java2.lessons.tests.app.service.impl.AccountServiceImpl")
 public class AccountServiceImpl implements AccountService {
 
 

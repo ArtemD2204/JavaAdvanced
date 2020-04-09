@@ -1,5 +1,6 @@
 package ru.progwards.java2.lessons.tests.app.service.impl;
 
+import ru.progwards.java2.lessons.annotation.Dependency;
 import ru.progwards.java2.lessons.tests.app.Store;
 import ru.progwards.java2.lessons.tests.app.model.Account;
 import ru.progwards.java2.lessons.tests.app.service.StoreService;
@@ -7,6 +8,7 @@ import ru.progwards.java2.lessons.tests.app.service.StoreService;
 import java.util.Collection;
 import java.util.List;
 
+@Dependency(name = "ru.progwards.java2.lessons.tests.app.service.impl.StoreServiceImpl")
 public class StoreServiceImpl implements StoreService {
     @Override
     public Account get(String id) {
