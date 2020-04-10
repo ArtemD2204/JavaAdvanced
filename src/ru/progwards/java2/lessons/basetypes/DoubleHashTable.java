@@ -26,6 +26,11 @@ public class DoubleHashTable<K extends HashValue, V> implements Iterable<TableIt
     }
 
     public void add(K key, V item) throws Exception {
+        internalAdd(new TableItem<K, V>(key, item));
+    }
+
+    private void internalAdd(TableItem<K, V> item) throws Exception {
+        K key = item.getKey();
         int index = getHash(key.getHash());
         int step = getHashForStep(key.getHash());
         int collisionCounter = 0;
@@ -39,26 +44,25 @@ public class DoubleHashTable<K extends HashValue, V> implements Iterable<TableIt
             if(table[index] == null || ((TableItem<K, V>) table[index]).isRemoved)
                 break;
             collisionCounter++;
-            if(collisionCounter * 100 / table.length >= 10) {
+            if(collisionCounter * 100 / table.length >= 10 || size >= table.length) {
                 expandTable();
                 index = getHash(key.getHash());
-                step = getHashForStep(key.getHash());
             } else {
                 index += step;
             }
         }
-        table[index] = new TableItem<K, V>(key, item);
+        table[index] = item;
         size++;
     }
 
     private void expandTable() throws Exception{
-        Object[] oldTable = Arrays.copyOf(table, table.length);
+        Object[] oldTable = table;
         table = new Object[PrimeNumber.getNearestPrime(table.length * 2)];
         size = 0;
         for(Object o : oldTable) {
             if(o != null && !((TableItem<K, V>) o).isRemoved) {
                 TableItem<K, V> item = (TableItem<K, V>) o;
-                add(item.getKey(), item.getItem());
+                internalAdd(item);
             }
         }
     }

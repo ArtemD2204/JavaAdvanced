@@ -44,6 +44,7 @@ public class BiDirList<T> implements Iterable<T> {
 
     private ListItem<T> head;
     private ListItem<T> tail;
+    private int size;
 
     ListItem<T> getHead() {
         return head;
@@ -63,6 +64,7 @@ public class BiDirList<T> implements Iterable<T> {
             li.setPrev(tail);
             tail = li;
         }
+        size++;
     }
 
     public void addFirst(T item) { // добавить в начало списка
@@ -75,6 +77,7 @@ public class BiDirList<T> implements Iterable<T> {
             li.setNext(head);
             head = li;
         }
+        size++;
     }
 
     public void remove(T item) { // удалить
@@ -93,6 +96,7 @@ public class BiDirList<T> implements Iterable<T> {
                 } else {
                     tail = current.getPrev();
                 }
+                size--;
                 return;
             }
             current = current.getNext();
@@ -118,13 +122,7 @@ public class BiDirList<T> implements Iterable<T> {
     }
 
     public int size() { // получить количество элементов
-        int counter = 0;
-        ListItem<T> current = getHead();
-        while(current != null) {
-            current = current.getNext();
-            counter++;
-        }
-        return counter;
+        return size;
     }
 
     public static<T> BiDirList<T> from(T[] array) { // конструктор из массива
