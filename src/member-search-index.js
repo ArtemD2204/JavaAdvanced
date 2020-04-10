@@ -1,0 +1,1 @@
+memberSearchIndex = [{"p":"ru.progwards.java2.lessons.trees","c":"TreeIterator","l":"hasNext()"},{"p":"ru.progwards.java2.lessons.trees","c":"TreeIterator","l":"next()"},{"p":"ru.progwards.java2.lessons.trees","c":"TreeIterator","l":"remove()"}]
