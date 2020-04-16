@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="AgentProfiler">
+    <output-path>$PROJECT_DIR$/out/artifacts/AgentProfiler</output-path>
+    <root id="archive" name="AgentProfiler.jar">
+      <element id="file-copy" path="$PROJECT_DIR$/out/production/JavaAdvancedLevel/ru/progwards/java2/lessons/classloader/AgentProfiler.class" />
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/out/production/JavaAdvancedLevel/ru/progwards/java2/lessons/classloader/META-INF/MANIFEST.MF" />
+      </element>
+    </root>
+  </artifact>
+</component>
