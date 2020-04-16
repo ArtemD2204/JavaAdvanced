@@ -8,6 +8,7 @@ public class DoubleHashTable<K extends HashValue, V> implements Iterable<TableIt
 
     private Object[] table;
     private int size;
+    private final int STEP_CONST_VALUE = 10;
 
     DoubleHashTable() {
         table = new Object[101];
@@ -33,6 +34,7 @@ public class DoubleHashTable<K extends HashValue, V> implements Iterable<TableIt
         K key = item.getKey();
         int index = getHash(key.getHash());
         int step = getHashForStep(key.getHash());
+        step = step==0 ? STEP_CONST_VALUE : step;
         int collisionCounter = 0;
         while (true){
             if (index >= table.length) {
