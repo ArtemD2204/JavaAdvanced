@@ -40,15 +40,13 @@ public class AvlTree<K extends Comparable<K>, V> {
             } else if (cmp > 0) {
                 right = leaf;
                 leaf.parent = this;
-                leaf.height = 1;
-                recalcHeight();
-                makeBallance();
+                leaf.recalcHeight();
+                leaf.makeBallance();
             } else {
                 left = leaf;
                 leaf.parent = this;
-                leaf.height = 1;
-                recalcHeight();
-                makeBallance();
+                leaf.recalcHeight();
+                leaf.makeBallance();
             }
         }
 
@@ -58,7 +56,6 @@ public class AvlTree<K extends Comparable<K>, V> {
                 int left = node.getHeight(node.left);
                 int right = node.getHeight(node.right);
                 node.height = Math.max(left, right) + 1;
-//                }
                 node = node.parent;
             }
         }
@@ -174,27 +171,28 @@ public class AvlTree<K extends Comparable<K>, V> {
         private void makeBallance() {
             AvlTree.TreeLeaf node = this;
             while (node != null) {
-                if (Math.abs(node.getBallance()) > 1) {
-                    AvlTree.TreeLeaf b = node.left;
-                    AvlTree.TreeLeaf c = b == null ? null : b.right;
-                    if ((getHeight(b) - getHeight(node.right)) == 2) {
-                        if (getHeight(c) <= getHeight(b.left)) {
-                            node.smallRightRotate();
-                        } else {
-                            node.bigRightRotate();
-                        }
-                    }
-                    b = node.right;
-                    c = b == null ? null : b.left;
-                    if ((getHeight(b) - getHeight(node.left)) == 2) {
-                        if (getHeight(c) <= getHeight(b.right)) {
-                            node.smallLeftRotate();
-                        } else {
-                            node.bigLeftRotate();
-                        }
-                    }
-                }
+                node.achieveBallanceInOneNode();
                 node = node.parent;
+            }
+        }
+
+        private void achieveBallanceInOneNode() {
+            while (Math.abs(getBallance()) > 1) {
+                if (getBallance() > 1) {  // same as ((getHeight(b) - getHeight(node.right)) >= 2)
+                    AvlTree.TreeLeaf b = left;
+                    AvlTree.TreeLeaf c = b == null ? null : b.right;
+                    if (getHeight(c) <= getHeight(b.left))
+                        smallRightRotate();
+                    else
+                        bigRightRotate();
+                } else if (getBallance() < -1) { // same as ((getHeight(b) - getHeight(node.left)) >= 2)
+                    AvlTree.TreeLeaf b = right;
+                    AvlTree.TreeLeaf c = b == null ? null : b.left;
+                    if (getHeight(c) <= getHeight(b.right))
+                        smallLeftRotate();
+                    else
+                        bigLeftRotate();
+                }
             }
         }
 
@@ -215,31 +213,39 @@ public class AvlTree<K extends Comparable<K>, V> {
         }
 
         void delete() {
-            // Если удаляемый узел не терминальный
+            // if removed node is NOT terminal
             if (left != null || right != null) {
-                int ballance = getBallance();
-                AvlTree.TreeLeaf node = ballance > 0 ? left.findMax() : right.findMin();
-                // с узла nodeToStartBallance начинаем пересчет высот и балансировку при необходимости
+                // put AvlTree.TreeLeaf node instead of this
+                AvlTree.TreeLeaf node = getBallance() > 0 ? left.findMax() : right.findMin();
+                // recalculation of heights and balancing are started from nodeToStartBallance
                 AvlTree.TreeLeaf nodeToStartBallance = this == node.parent ? node : node.parent;
-                // подставляем node на место this
-                // если у node есть потомки, то в subTreeToPaste сохраним поддерево удаляемого узла(this) для последующей вставки
-                AvlTree.TreeLeaf subTreeToPaste = null;
-                if (node.right == null)
-                    node.right = node != right ? right : null;
-                else
-                    subTreeToPaste = right;
-                if (node.left == null)
-                    node.left = node != left ? left : null;
-                else
-                    subTreeToPaste = left;
+                // if node has children, then subTreeToBePasted is subtree of this(i.e. the node to be deleted),
+                // subTreeToBePasted will be put to node
+                AvlTree.TreeLeaf subTreeToBePasted = null;
+                if (node != right) {
+                    if (node.right == null) {
+                        node.right = right;
+                        if (right != null)
+                            right.parent = node;
+                    } else
+                        subTreeToBePasted = right;
+                }
+                if (node != left) {
+                    if (node.left == null) {
+                        node.left = left;
+                        if (left != null)
+                            left.parent = node;
+                    } else
+                        subTreeToBePasted = left;
+                }
                 left = null;
                 right = null;
-                // удаляем ссылку у старого родителя на node
+                // remove old parent reference to node
                 if (node.parent.right == node)
                     node.parent.right = null;
                 else
                     node.parent.left = null;
-                // добавляем нового родителя у node
+                // add new parent to node
                 node.parent = parent;
                 if (parent != null) {
                     if (parent.right == this)
@@ -250,12 +256,23 @@ public class AvlTree<K extends Comparable<K>, V> {
                 } else {
                     AvlTree.this.root = node;
                 }
-                if (subTreeToPaste != null)
-                    node.find(subTreeToPaste.key).put(subTreeToPaste);
+                if (subTreeToBePasted != null) {
+                    AvlTree.TreeLeaf nodeForPaste = node.find(subTreeToBePasted.key);
+                    int cmp = subTreeToBePasted.key.compareTo(nodeForPaste.key);
+                    if (cmp == 0) {
+                        throw new RuntimeException("Error in delete()");
+                    } else if (cmp > 0) {
+                        nodeForPaste.right = subTreeToBePasted;
+                        subTreeToBePasted.parent = nodeForPaste;
+                    } else {
+                        nodeForPaste.left = subTreeToBePasted;
+                        subTreeToBePasted.parent = nodeForPaste;
+                    }
+                }
                 nodeToStartBallance.recalcHeight();
                 nodeToStartBallance.makeBallance();
             } else {
-                // else - иначе удаляемый узел терминальный
+                // else - removed node IS terminal
                 if (parent != null) {
                     AvlTree.TreeLeaf nodeToStartBallance = parent;
                     if (parent.right == this)
@@ -332,14 +349,24 @@ public class AvlTree<K extends Comparable<K>, V> {
     }
 
     private void printTree() {
-        System.out.println("                         " + (root));
-        System.out.println("                 " + getChildren(root));
+        System.out.println("                      " + (root));
+        System.out.println("                  " + getChildren(root));
         if (root != null)
-            System.out.println("          " + getChildren(root.left) + " " + getChildren(root.right));
+            System.out.println("            " + getChildren(root.left) + " " + getChildren(root.right));
         if (root.left != null)
             System.out.print(getChildren(root.left.left) + " " + getChildren(root.left.right));
         if (root.right != null)
             System.out.println("   " + getChildren(root.right.left) + " " + getChildren(root.right.right));
+
+        if (root.left != null && root.left.left != null)
+            System.out.print(getChildren(root.left.left.left) + " " + getChildren(root.left.left.right));
+        if (root.left != null && root.left.right != null)
+            System.out.print(getChildren(root.left.right.left) + " " + getChildren(root.left.right.right));
+
+        if (root.right != null && root.right.left != null)
+            System.out.print("   " + getChildren(root.right.left.left) + " " + getChildren(root.right.left.right));
+        if (root.right != null && root.right.right != null)
+            System.out.println("   " + getChildren(root.right.right.left) + " " + getChildren(root.right.right.right));
         System.out.println("--------------------------");
     }
 

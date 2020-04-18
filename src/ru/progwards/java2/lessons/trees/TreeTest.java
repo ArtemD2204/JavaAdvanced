@@ -18,15 +18,13 @@ public class TreeTest {
         }
         // put test
         long start = System.currentTimeMillis();
-        for(int i=0; i<intList.size(); i++) {
-            int key = intList.get(i);
+        for(Integer key : intList) {
             map.put(key, key);
         }
         long stop = System.currentTimeMillis();
         System.out.println("TreeMap put: " + (stop-start));
         start = System.currentTimeMillis();
-        for(int i=0; i<intList.size(); i++) {
-            int key = intList.get(i);
+        for(Integer key : intList) {
             avlTree.put(key, key);
         }
         stop = System.currentTimeMillis();
@@ -35,15 +33,13 @@ public class TreeTest {
 
         // find random test
         start = System.currentTimeMillis();
-        for(int i=0; i<intList.size(); i++) {
-            int key = intList.get(i);
+        for(Integer key : intList) {
             map.get(key);
         }
         stop = System.currentTimeMillis();
         System.out.println("TreeMap random find: " + (stop-start));
         start = System.currentTimeMillis();
-        for(int i=0; i<intList.size(); i++) {
-            int key = intList.get(i);
+        for(Integer key : intList) {
             avlTree.find(key);
         }
         stop = System.currentTimeMillis();
@@ -51,33 +47,35 @@ public class TreeTest {
         System.out.println("----------------------");
 
         // find sorted test
-        intList.sort(Integer::compare);
+        List<Integer> sortedIntList = new ArrayList<>(intList);
+        sortedIntList.sort(Integer::compare);
         start = System.currentTimeMillis();
-        for (Integer key : intList) {
+        for (Integer key : sortedIntList) {
             map.get(key);
         }
         stop = System.currentTimeMillis();
         System.out.println("TreeMap sorted find: " + (stop-start));
         start = System.currentTimeMillis();
-        for (Integer key : intList) {
+        for (Integer key : sortedIntList) {
             avlTree.find(key);
         }
         stop = System.currentTimeMillis();
         System.out.println("AvlTree sorted find: " + (stop-start));
         System.out.println("----------------------");
+
         // delete test
         start = System.currentTimeMillis();
         for (Integer key : intList) {
             map.remove(key);
         }
         stop = System.currentTimeMillis();
-        System.out.println("TreeMap delete: " + (stop-start));
+        System.out.println("TreeMap random delete: " + (stop-start));
         start = System.currentTimeMillis();
         for (Integer key : intList) {
             avlTree.delete(key);
         }
         stop = System.currentTimeMillis();
-        System.out.println("AvlTree delete: " + (stop-start));
+        System.out.println("AvlTree random delete: " + (stop-start));
         System.out.println("----------------------");
 
         System.out.println("find&delete passed OK");
@@ -112,7 +110,7 @@ public class TreeTest {
         }
         stop = System.currentTimeMillis();
         System.out.println("AvlTree put: " + (stop-start));
-        System.out.println("----------------------");;
+        System.out.println("----------------------");
 
         // find random test
         start = System.currentTimeMillis();
@@ -130,15 +128,16 @@ public class TreeTest {
         System.out.println("----------------------");
 
         // find sorted test
-        tokensList.sort(Comparator.naturalOrder());
+        ArrayList<String> sortedTokensList = new ArrayList<>(tokensList);
+        sortedTokensList.sort(Comparator.naturalOrder());
         start = System.currentTimeMillis();
-        for (String str : tokensList) {
+        for (String str : sortedTokensList) {
             strMap.get(str);
         }
         stop = System.currentTimeMillis();
         System.out.println("TreeMap sorted find: " + (stop-start));
         start = System.currentTimeMillis();
-        for (String str : tokensList) {
+        for (String str : sortedTokensList) {
             strAvlTree.find(str);
         }
         stop = System.currentTimeMillis();
@@ -150,13 +149,13 @@ public class TreeTest {
             strMap.remove(str);
         }
         stop = System.currentTimeMillis();
-        System.out.println("TreeMap delete: " + (stop-start));
+        System.out.println("TreeMap random delete: " + (stop-start));
         start = System.currentTimeMillis();
         for (String str : tokensList) {
             strAvlTree.delete(str);
         }
         stop = System.currentTimeMillis();
-        System.out.println("AvlTree delete: " + (stop-start));
+        System.out.println("AvlTree random delete: " + (stop-start));
         System.out.println("----------------------");
 
         System.out.println("find&delete passed OK");
