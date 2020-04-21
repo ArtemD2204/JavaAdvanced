@@ -11,10 +11,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class ProfilerTransformer implements ClassFileTransformer {
-    String agentArgument;
+    private Set<String> classesToProfile;
+    private String mainClassName;
+
 
     public ProfilerTransformer(String agentArgument) {
-        this.agentArgument = agentArgument;
+        String[] classesToProfileArr = agentArgument.split(";");
+        classesToProfile = new HashSet<>(Arrays.asList(classesToProfileArr));
+        mainClassName = classesToProfileArr[0];
     }
 
     @Override
@@ -25,9 +29,6 @@ public class ProfilerTransformer implements ClassFileTransformer {
             ProtectionDomain protectionDomain,
             byte[] classfileBuffer
     ) {
-        String[] classesToProfileArr = agentArgument.split(";");
-        Set<String> classesToProfile = new HashSet<>(Arrays.asList(classesToProfileArr));
-        String mainClassName = classesToProfileArr[0];
         byte[] byteCode = classfileBuffer;
         if (classesToProfile.contains(className)) {
             try {
