@@ -14,7 +14,11 @@ public class FindUnused {
                 cObject.references.forEach(stack::offerFirst);
             }
         }
-        objects.removeIf(cObject -> cObject.mark == 1);
-        return objects;
+        List<CObject> unused = new ArrayList<>();
+        for (CObject cObject : objects){
+            if (cObject.mark == 0)
+                unused.add(cObject);
+        }
+        return unused;
     }
 }
