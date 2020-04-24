@@ -13,12 +13,12 @@ public class StoreFile {
         if (Files.exists(path))
             Files.delete(path);
         Files.createFile(path);
-        for (int i = 0; i < 10 ; i++) {
+        for (int i = 0; i < 10 ; i+=2) {
             String id = Integer.toString(i);
             sb.append(id).append(";");
-            sb.append("Account_").append(i).append(";"); // add holder
-            sb.append(new Date(System.currentTimeMillis()+365*24*3600*1000)).append(";"); // add date
-            sb.append(Math.random()*1_000_000).append(";"); // add amount
+//            sb.append("Account_").append(i).append(";"); // add holder
+//            sb.append(new Date(System.currentTimeMillis()+365*24*3600*1000)).append(";"); // add date
+//            sb.append(Math.random()*1_000_000).append(";"); // add amount
             sb.append(1000+i).append(lineSeparator); // add pin
             Files.writeString(path, sb.toString(), StandardOpenOption.APPEND);
             sb.delete(0, sb.length());
