@@ -2,98 +2,119 @@ package ru.progwards.java2.lessons.graph;
 
 import java.util.*;
 
-// Алгоритм ищет минимальное остовное дерево в связанном неориентированном графе
-public class Boruvka<N, E> {
+public class Boruvka {
+    // множество trees хранит корневые элементы деревьев
+    private static Set<TreeNode> trees;
+    // nodeMap: ключ - node, значение - TreeNode, соответствующий узлу node
+    private static Map<Node, TreeNode> nodeMap;
+    // edges: ребра остовного дерева
+    private static List<Edge> edges;
+
     static List<Edge> minTree(Graph graph) {
-        return new Boruvka<>().getMinTree(graph);
+        initialize(graph);
+        callBoruvkaAlgorithm();
+        return edges;
     }
 
-    private List<Edge<N, E>> getMinTree(Graph<N, E> graph) {
-        // forest initialization
-        // masterNodes: ключ - node.info , значение - корневой узел(masterNode) дерева, которому принадлежит node
-        Map<N, Node<N, E>> masterNodes = new HashMap<>();
-        // trees: ключ - masterNode.info , значение - дерево, у которово корнем является masterNode
-        Map<N, Tree> trees = new HashMap<>();
-        for (Node<N, E> node : graph.nodes) {
-            masterNodes.put(node.info, node);
-            Tree tree = new Tree();
-            tree.nodes.add(node);
-            tree.setMasterNode(node);
-            trees.put(node.info, tree);
+    // forest initialization
+    private static void initialize(Graph graph) {
+        trees = new HashSet<>();
+        nodeMap = new HashMap<>();
+        edges = new ArrayList<>();
+        for (Node node : (List<Node>) graph.nodes) {
+            TreeNode tree = new TreeNode(node);
+            trees.add(tree);
+            nodeMap.put(node, tree);
         }
-        // Boruvka algorithm
-        int maxEdgeNum = graph.nodes.size() - 1; // количество ребер в остовном дереве
-        for (int edgeNum = 0; edgeNum < maxEdgeNum; edgeNum++) { // за одну итерацию прибавляем одно ребро
-            // проходим по всем деревьям из trees
-            // находим ребро с минимальным весом minEdge, исходящее из дерева firstTreeToBeMerged
-            Edge<N, E> minEdge = null;
-            Tree firstTreeToBeMerged = null;
-            Tree secondTreeToBeMerged = null;
-            for (Tree tree : trees.values()) {
-                Node<N, E> firstTreeRoot = tree.getMasterNode(); // корневой элемент дерева
-                // проходим по всем узлам дерева
-                for (Node<N, E> node : tree.nodes) {
-                    for (Edge<N, E> edge : node.in) {
-                        if (minEdge == null || minEdge.weight > edge.weight) {
-                            Node<N, E> secondNode = edge.getSecond(node);
-                            Node<N, E> secondTreeRoot = masterNodes.get(secondNode.info);
-                            if (secondTreeRoot != firstTreeRoot) {
-                                minEdge = edge;
-                                firstTreeToBeMerged = tree;
-                                secondTreeToBeMerged = trees.get(secondTreeRoot.info);
-                            }
-                        }
-                    }
-                    for (Edge<N, E> edge : node.out) {
-                        if (minEdge == null || minEdge.weight > edge.weight) {
-                            Node<N, E> secondNode = edge.getSecond(node);
-                            Node<N, E> secondTreeRoot = masterNodes.get(secondNode.info);
-                            if (secondTreeRoot != firstTreeRoot) {
-                                minEdge = edge;
-                                firstTreeToBeMerged = tree;
-                                secondTreeToBeMerged = trees.get(secondTreeRoot.info);
-                            }
+    }
+
+    private static void callBoruvkaAlgorithm() {
+        Iterator<TreeNode> treeIterator = trees.iterator();
+        while (treeIterator.hasNext()) {
+            TreeNode tree = treeIterator.next();
+            Edge minEdge = null; // находим ребро с минимальным весом minEdge, исходящее из tree
+            TreeNode secondTreeToBeMerged = null;
+            TreeNode treeRoot = tree; // корневой элемент дерева
+            while (tree != null) {  // проходим по всем узлам дерева
+                for (Edge edge : (List<Edge>) tree.node.out) {
+                    if (minEdge == null || minEdge.weight > edge.weight) {
+                        TreeNode secondTree = nodeMap.get(edge.in);
+                        TreeNode secondTreeRoot = secondTree.getMasterNode();
+                        if (secondTreeRoot != treeRoot) {
+                            minEdge = edge;
+                            secondTreeToBeMerged = secondTree;
                         }
                     }
                 }
+                for (Edge edge : (List<Edge>) tree.node.in) {
+                    if (minEdge == null || minEdge.weight > edge.weight) {
+                        TreeNode secondTree = nodeMap.get(edge.out);
+                        TreeNode secondTreeRoot = secondTree.getMasterNode();
+                        if (secondTreeRoot != treeRoot) {
+                            minEdge = edge;
+                            secondTreeToBeMerged = secondTree;
+                        }
+                    }
+                }
+                tree = tree.getChild();
             }
-            // Второе дерево сливаем с первым, после чего второе дерево удаляем из Map<N, Tree> trees
             if (minEdge != null) {
-                Node<N, E> firstTreeRoot = firstTreeToBeMerged.getMasterNode();
-                for (Node<N, E> node : secondTreeToBeMerged.nodes) {
-                    masterNodes.put(node.info, firstTreeRoot);
-                }
-                firstTreeToBeMerged.merge(secondTreeToBeMerged, minEdge);
-                trees.remove(secondTreeToBeMerged.getMasterNode().info);
+                secondTreeToBeMerged.merge(treeRoot);
+                treeIterator.remove();
+                edges.add(minEdge);
             }
         }
-        if (trees.size() > 1) {
-            throw new RuntimeException("Only one tree should remains");
-        } else {
-            for (Tree tree : trees.values()) {
-                return tree.edges;
-            }
-        }
-        return null;
     }
 
-    private class Tree {
-        Node<N, E> masterNode;
-        List<Node<N, E>> nodes = new ArrayList<>();
-        List<Edge<N, E>> edges = new ArrayList<>();
+    private static class TreeNode {
+        Node node;
+        TreeNode parent;
+        TreeNode child;
 
-        Node<N, E> getMasterNode() {
-            return masterNode;
+        TreeNode(Node node) {
+            this.node = node;
         }
 
-        void setMasterNode(Node<N, E> masterNode) {
-            this.masterNode = masterNode;
+        TreeNode getParent() {
+            return parent;
         }
 
-        void merge(Tree tree, Edge<N, E> connectingEdge) {
-            nodes.addAll(tree.nodes);
-            edges.add(connectingEdge);
-            edges.addAll(tree.edges);
+        void setParent(TreeNode parent) {
+            this.parent = parent;
+        }
+
+        TreeNode getChild() {
+            return child;
+        }
+
+        void setChild(TreeNode child) {
+            this.child = child;
+        }
+
+        TreeNode getMasterNode() {
+            TreeNode treeNode = this;
+            TreeNode nodeParent = treeNode.getParent();
+            while (nodeParent != null) {
+                treeNode = nodeParent;
+                nodeParent = treeNode.getParent();
+            }
+            return treeNode;
+        }
+
+        TreeNode getTailNode() {
+            TreeNode treeNode = this;
+            TreeNode nodeChild = treeNode.getChild();
+            while (nodeChild != null) {
+                treeNode = nodeChild;
+                nodeChild = treeNode.getChild();
+            }
+            return treeNode;
+        }
+
+        void merge(TreeNode treeNode) {
+            TreeNode tailOfThis = this.getTailNode();
+            treeNode.setParent(tailOfThis);
+            tailOfThis.setChild(treeNode);
         }
     }
 
@@ -116,8 +137,8 @@ public class Boruvka<N, E> {
         Edge<String, String> edgeAB = new Edge<>();
         edgeAB.info = "AB";
         edgeAB.weight = 7;
-        edgeAB.in = nodeA;
-        edgeAB.out = nodeB;
+        edgeAB.in = nodeB;
+        edgeAB.out = nodeA;
         Edge<String, String> edgeBC = new Edge<>();
         edgeBC.info = "BC";
         edgeBC.weight = 8;
@@ -126,8 +147,8 @@ public class Boruvka<N, E> {
         Edge<String, String> edgeAD = new Edge<>();
         edgeAD.info = "AD";
         edgeAD.weight = 5;
-        edgeAD.in = nodeA;
-        edgeAD.out = nodeD;
+        edgeAD.in = nodeD;
+        edgeAD.out = nodeA;
         Edge<String, String> edgeBD = new Edge<>();
         edgeBD.info = "BD";
         edgeBD.weight = 9;
@@ -141,8 +162,8 @@ public class Boruvka<N, E> {
         Edge<String, String> edgeCE = new Edge<>();
         edgeCE.info = "CE";
         edgeCE.weight = 5;
-        edgeCE.in = nodeC;
-        edgeCE.out = nodeE;
+        edgeCE.in = nodeE;
+        edgeCE.out = nodeC;
         Edge<String, String> edgeDE = new Edge<>();
         edgeDE.info = "DE";
         edgeDE.weight = 15;
@@ -156,8 +177,8 @@ public class Boruvka<N, E> {
         Edge<String, String> edgeFE = new Edge<>();
         edgeFE.info = "FE";
         edgeFE.weight = 8;
-        edgeFE.in = nodeF;
-        edgeFE.out = nodeE;
+        edgeFE.in = nodeE;
+        edgeFE.out = nodeF;
         Edge<String, String> edgeEG = new Edge<>();
         edgeEG.info = "EG";
         edgeEG.weight = 9;
@@ -169,32 +190,35 @@ public class Boruvka<N, E> {
         edgeFG.in = nodeF;
         edgeFG.out = nodeG;
 
-        nodeA.in.add(edgeAD);
-        nodeA.in.add(edgeAB);
+        nodeA.out.add(edgeAD);
+        nodeA.out.add(edgeAB);
         nodeB.in.add(edgeAB);
         nodeB.in.add(edgeBC);
         nodeB.in.add(edgeBE);
         nodeB.in.add(edgeBD);
-        nodeC.in.add(edgeBC);
-        nodeC.in.add(edgeCE);
+        nodeC.out.add(edgeBC);
+        nodeC.out.add(edgeCE);
         nodeD.in.add(edgeAD);
-        nodeD.in.add(edgeBD);
+        nodeD.out.add(edgeBD);
         nodeD.in.add(edgeDE);
         nodeD.in.add(edgeDF);
         nodeE.in.add(edgeCE);
-        nodeE.in.add(edgeBE);
-        nodeE.in.add(edgeDE);
+        nodeE.out.add(edgeBE);
+        nodeE.out.add(edgeDE);
         nodeE.in.add(edgeFE);
         nodeE.in.add(edgeEG);
-        nodeF.in.add(edgeDF);
-        nodeF.in.add(edgeFE);
+        nodeF.out.add(edgeDF);
+        nodeF.out.add(edgeFE);
         nodeF.in.add(edgeFG);
-        nodeG.in.add(edgeFG);
-        nodeG.in.add(edgeEG);
+        nodeG.out.add(edgeFG);
+        nodeG.out.add(edgeEG);
         Graph<String, String> graph = new Graph<>();
         graph.nodes.addAll(Set.of(nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG));
         graph.edges.addAll(Set.of(edgeAB, edgeBC, edgeAD, edgeBD, edgeBE, edgeCE, edgeDE, edgeDF, edgeFE, edgeFG, edgeEG));
 
-        Boruvka.minTree(graph).forEach(System.out::println);
+        List<Edge> edges = Boruvka.minTree(graph);
+        edges.forEach(System.out::println);
+        System.out.println(edges.contains(edgeAD) + "; " + edges.contains(edgeCE) + "; " + edges.contains(edgeDF)
+                + "; " + edges.contains(edgeAB) + "; " + edges.contains(edgeBE) + "; " + edges.contains(edgeEG));
     }
 }
