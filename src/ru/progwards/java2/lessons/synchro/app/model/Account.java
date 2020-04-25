@@ -51,4 +51,15 @@ public class Account {
     public void setPin(int pin) {
         this.pin = pin;
     }
+
+    @Override
+    public String toString() {
+        return "Account{" +
+                "id='" + id + '\'' +
+                ", holder='" + holder + '\'' +
+                ", date=" + date +
+                ", amount=" + amount +
+                ", pin=" + pin +
+                '}';
+    }
 }

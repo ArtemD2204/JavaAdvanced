@@ -19,7 +19,7 @@ public class Store {
             acc.setId(id);
             acc.setPin(1000+i);
             acc.setHolder("Account_"+i);
-            acc.setDate(new Date(System.currentTimeMillis()+365*24*3600*1000));
+            acc.setDate(new Date(System.currentTimeMillis()+365L*24*3600*1000));
             acc.setAmount(Math.random()*1_000_000);
 
             store.put(acc.getId(), acc);
