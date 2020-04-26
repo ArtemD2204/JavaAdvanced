@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class FileStoreService extends RandomAccessFile implements StoreService {
+    private final int STR_MIN_SIZE = 150;
 
     public FileStoreService(String pathName)
             throws FileNotFoundException {
@@ -36,28 +37,22 @@ public class FileStoreService extends RandomAccessFile implements StoreService {
         for (long i = length(); i >= 0; i--) {
             seek(i);
             int byteChar = read();
-            if (byteChar != 0x0D && byteChar != 0x0A && byteChar != 0x20) {
-                startStringPosition(getFilePointer());
-                System.out.println(readLine());
-                System.out.println(Integer.toHexString(byteChar));
+            if (byteChar != 0x0D && byteChar != 0x0A && byteChar != 0x20 && byteChar != 0xFFFFFFFF) {
                 break;
             }
         }
         long end = getFilePointer();
-        System.out.println("----------------------------");
         while (start < end) {
             // ищем середину и движемся к началу строки
             long current = startStringPosition((end + start) / 2);
             seek(current);
             String currentLine = readLine();
             if (currentLine == null) {
-//                System.out.println("fafa");
                 return -1;
             }
             currentLine = new String(currentLine.getBytes("ISO-8859-1"), "UTF-8");
             // сравниваем заданный id и найденный в файле
             String currentID = currentLine.split(";")[0];
-            System.out.println(currentLine);
             int compareResult = id.compareTo(currentID);
             if (compareResult == 0) {
                 seek(current);
@@ -109,7 +104,7 @@ public class FileStoreService extends RandomAccessFile implements StoreService {
             seek(0);
             String str = readLine();
             while (str != null) {
-                if (!str.startsWith(" "))
+                if (!str.startsWith(" ") && !str.isEmpty())
                     list.add(parseAccount(str));
                 str = readLine();
             }
@@ -130,7 +125,7 @@ public class FileStoreService extends RandomAccessFile implements StoreService {
             readLine();
             long copyPointer = getFilePointer();
             String copiedStr = readLine();
-            while (copiedStr != null){
+            while (copiedStr != null) {
                 copiedStr = copiedStr.trim();
                 seek(pastePointer);
                 updateStrInFileStore(copiedStr, currentStrLength);
@@ -141,7 +136,7 @@ public class FileStoreService extends RandomAccessFile implements StoreService {
                 copiedStr = readLine();
             }
             seek(pastePointer);
-            writeBytes(createStringWithSpaces(200));
+            writeBytes(createStringWithSpaces(STR_MIN_SIZE));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -157,18 +152,19 @@ public class FileStoreService extends RandomAccessFile implements StoreService {
             }
             long startWritePointer = getFilePointer();
             Path currentPath = Paths.get(".");
-            Path tmpFile = Files.createTempFile(currentPath,"tail_of_StoreFile_", ".tmp");
+            Path tmpFile = Files.createTempFile(currentPath, "tail_of_StoreFile_", ".tmp");
             RandomAccessFile tmp = new RandomAccessFile(tmpFile.toString(), "rw");
             copyToTmpFile(tmp);
             seek(startWritePointer);
             tmp.seek(0);
             String strToBeInsert = castAccountToString(account);
-            while (strToBeInsert != null){
+            currentStrLength = STR_MIN_SIZE;
+            while (strToBeInsert != null) {
                 updateStrInFileStore(strToBeInsert, currentStrLength);
                 writeBytes(lineSeparator);
                 startWritePointer = getFilePointer();
                 String currentString = readLine();
-                currentStrLength = currentString==null ? 0 : currentString.length();
+                currentStrLength = currentString == null ? 0 : currentString.length();
                 seek(startWritePointer);
                 strToBeInsert = tmp.readLine();
             }
@@ -190,9 +186,9 @@ public class FileStoreService extends RandomAccessFile implements StoreService {
         }
     }
 
-    private String createStringWithSpaces(int numberOfSpaces){
+    private String createStringWithSpaces(int numberOfSpaces) {
         StringBuilder sb = new StringBuilder();
-        for (int j=0; j<numberOfSpaces; j++){
+        for (int j = 0; j < numberOfSpaces; j++) {
             sb.append(" ");
         }
         return sb.toString();
@@ -206,7 +202,7 @@ public class FileStoreService extends RandomAccessFile implements StoreService {
                 throw new RuntimeException("Account with id:" + account.getId() + " does not exist");
             }
             updateStrInFileStore(castAccountToString(account), currentStrLength);
-        } catch (IOException e){
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -227,7 +223,7 @@ public class FileStoreService extends RandomAccessFile implements StoreService {
             acc.setPin(1000 + i);
             acc.setHolder("Account_" + i);
             acc.setDate(new Date(System.currentTimeMillis() + 365L * 24 * 3600 * 1000));
-            acc.setAmount(Math.floor(Math.random() * 100_000_000)/100);
+            acc.setAmount(Math.floor(Math.random() * 100_000_000) / 100);
             service.delete("15");
             service.delete("16");
             service.delete("17");
@@ -237,14 +233,14 @@ public class FileStoreService extends RandomAccessFile implements StoreService {
             service.delete("11");
             service.delete("28");
             service.delete("12");
-            for (int j = 21; j < 28; j++){
+            for (int j = 21; j < 28; j++) {
                 service.delete(Integer.toString(j));
             }
-//            service.insert(acc);
-//            Account account20 = service.get("20");
-//            account20.setHolder("Vasili");
-//            service.update(account20);
-//            service.get().forEach(System.out::println);
+            service.insert(acc);
+            Account account20 = service.get("20");
+            account20.setHolder("Vasili");
+            service.update(account20);
+            service.get().forEach(System.out::println);
         }
     }
 }
