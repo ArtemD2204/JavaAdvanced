@@ -9,7 +9,6 @@ import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 public class FileStoreService extends RandomAccessFile implements StoreService {
@@ -34,18 +33,31 @@ public class FileStoreService extends RandomAccessFile implements StoreService {
     // ставит указатель(FilePointer) в начало строки с найденным Account
     private int findAccountStringByID(String id) throws IOException {
         long start = 0;
-        long end = length();
-        while (start != end) {
+        for (long i = length(); i >= 0; i--) {
+            seek(i);
+            int byteChar = read();
+            if (byteChar != 0x0D && byteChar != 0x0A && byteChar != 0x20) {
+                startStringPosition(getFilePointer());
+                System.out.println(readLine());
+                System.out.println(Integer.toHexString(byteChar));
+                break;
+            }
+        }
+        long end = getFilePointer();
+        System.out.println("----------------------------");
+        while (start < end) {
             // ищем середину и движемся к началу строки
             long current = startStringPosition((end + start) / 2);
             seek(current);
             String currentLine = readLine();
             if (currentLine == null) {
+//                System.out.println("fafa");
                 return -1;
             }
             currentLine = new String(currentLine.getBytes("ISO-8859-1"), "UTF-8");
             // сравниваем заданный id и найденный в файле
             String currentID = currentLine.split(";")[0];
+            System.out.println(currentLine);
             int compareResult = id.compareTo(currentID);
             if (compareResult == 0) {
                 seek(current);
@@ -138,6 +150,7 @@ public class FileStoreService extends RandomAccessFile implements StoreService {
     @Override
     public void insert(Account account) {
         try {
+            String lineSeparator = System.getProperty("line.separator");
             int currentStrLength = findAccountStringByID(account.getId());
             if (currentStrLength != -1) {
                 throw new RuntimeException("Account with id:" + account.getId() + " already exist");
@@ -152,14 +165,13 @@ public class FileStoreService extends RandomAccessFile implements StoreService {
             String strToBeInsert = castAccountToString(account);
             while (strToBeInsert != null){
                 updateStrInFileStore(strToBeInsert, currentStrLength);
+                writeBytes(lineSeparator);
                 startWritePointer = getFilePointer();
-                readLine();
-                currentStrLength = readLine().length();
+                String currentString = readLine();
+                currentStrLength = currentString==null ? 0 : currentString.length();
                 seek(startWritePointer);
                 strToBeInsert = tmp.readLine();
             }
-            writeBytes(createStringWithSpaces(100));
-            writeBytes(System.getProperty("line.separator"));
             tmp.close();
             Files.delete(tmpFile);
         } catch (IOException e) {
@@ -208,20 +220,27 @@ public class FileStoreService extends RandomAccessFile implements StoreService {
         StoreFile.initStoreFile();
         Path path = Paths.get("StoreFile.csv");
         try (FileStoreService service = new FileStoreService("StoreFile.csv")) {
-//            service.get().forEach(System.out::println);
-//            System.out.println("-----------------");
-//            service.delete("1");
-//            service.get().forEach(System.out::println);
-            Integer i = 1000;
+            int i = 1000;
             Account acc = new Account();
-            String id = i.toString();
+            String id = Integer.toString(i);
             acc.setId(id);
             acc.setPin(1000 + i);
             acc.setHolder("Account_" + i);
             acc.setDate(new Date(System.currentTimeMillis() + 365L * 24 * 3600 * 1000));
             acc.setAmount(Math.floor(Math.random() * 100_000_000)/100);
-//            service.delete("15");
-            service.insert(acc);
+            service.delete("15");
+            service.delete("16");
+            service.delete("17");
+            service.delete("18");
+            service.delete("19");
+            service.delete("29");
+            service.delete("11");
+            service.delete("28");
+            service.delete("12");
+            for (int j = 21; j < 28; j++){
+                service.delete(Integer.toString(j));
+            }
+//            service.insert(acc);
 //            Account account20 = service.get("20");
 //            account20.setHolder("Vasili");
 //            service.update(account20);
