@@ -1,5 +1,5 @@
 package ru.progwards.java2.lessons.trees;
-
+/*
 import java.util.function.Consumer;
 
 public class AvlTree<K extends Comparable<K>, V> {
@@ -9,9 +9,9 @@ public class AvlTree<K extends Comparable<K>, V> {
         int height;
         K key;
         V value;
-        AvlTree.TreeLeaf parent;
-        AvlTree.TreeLeaf left;
-        AvlTree.TreeLeaf right;
+        TreeLeaf<K, V> parent;
+        TreeLeaf<K, V> left;
+        TreeLeaf<K, V> right;
 
         public TreeLeaf(K key, V value) {
             this.key = key;
@@ -51,7 +51,7 @@ public class AvlTree<K extends Comparable<K>, V> {
         }
 
         private void recalcHeight() {
-            AvlTree.TreeLeaf node = this;
+            TreeLeaf<K, V> node = this;
             while (node != null) {
                 int left = node.getHeight(node.left);
                 int right = node.getHeight(node.right);
@@ -70,8 +70,8 @@ public class AvlTree<K extends Comparable<K>, V> {
 
         private void smallRightRotate() {
             // Малое правое вращение
-            AvlTree.TreeLeaf b = left;
-            AvlTree.TreeLeaf c = b == null ? null : b.right;
+            TreeLeaf<K, V> b = left;
+            TreeLeaf<K, V> c = b == null ? null : b.right;
             left = c;
             b.right = this;
             b.parent = parent;
@@ -91,8 +91,8 @@ public class AvlTree<K extends Comparable<K>, V> {
 
         private void smallLeftRotate() {
             // Малое левое вращение
-            AvlTree.TreeLeaf b = right;
-            AvlTree.TreeLeaf c = b == null ? null : b.left;
+            TreeLeaf<K, V> b = right;
+            TreeLeaf<K, V> c = b == null ? null : b.left;
             right = c;
             b.left = this;
             b.parent = parent;
@@ -112,10 +112,10 @@ public class AvlTree<K extends Comparable<K>, V> {
 
         private void bigRightRotate() {
             // Большое правое вращение
-            AvlTree.TreeLeaf b = left;
-            AvlTree.TreeLeaf c = b == null ? null : b.right;
-            AvlTree.TreeLeaf n = c == null ? null : c.right;
-            AvlTree.TreeLeaf m = c == null ? null : c.left;
+            TreeLeaf<K, V> b = left;
+            TreeLeaf<K, V> c = b == null ? null : b.right;
+            TreeLeaf<K, V> n = c == null ? null : c.right;
+            TreeLeaf<K, V> m = c == null ? null : c.left;
             left = n;
             b.right = m;
             c.right = this;
@@ -141,10 +141,10 @@ public class AvlTree<K extends Comparable<K>, V> {
 
         private void bigLeftRotate() {
             // Большое левое вращение
-            AvlTree.TreeLeaf b = right;
-            AvlTree.TreeLeaf c = b.left;
-            AvlTree.TreeLeaf n = c == null ? null : c.right;
-            AvlTree.TreeLeaf m = c == null ? null : c.left;
+            TreeLeaf<K, V> b = right;
+            TreeLeaf<K, V> c = b.left;
+            TreeLeaf<K, V> n = c == null ? null : c.right;
+            TreeLeaf<K, V> m = c == null ? null : c.left;
             right = m;
             b.left = n;
             c.left = this;
@@ -169,7 +169,7 @@ public class AvlTree<K extends Comparable<K>, V> {
         }
 
         private void makeBallance() {
-            AvlTree.TreeLeaf node = this;
+            TreeLeaf<K, V> node = this;
             while (node != null) {
                 node.achieveBallanceInOneNode();
                 node = node.parent;
@@ -179,15 +179,15 @@ public class AvlTree<K extends Comparable<K>, V> {
         private void achieveBallanceInOneNode() {
             while (Math.abs(getBallance()) > 1) {
                 if (getBallance() > 1) {  // same as ((getHeight(b) - getHeight(node.right)) >= 2)
-                    AvlTree.TreeLeaf b = left;
-                    AvlTree.TreeLeaf c = b == null ? null : b.right;
+                    TreeLeaf<K, V> b = left;
+                    TreeLeaf<K, V> c = b == null ? null : b.right;
                     if (getHeight(c) <= getHeight(b.left))
                         smallRightRotate();
                     else
                         bigRightRotate();
                 } else if (getBallance() < -1) { // same as ((getHeight(b) - getHeight(node.left)) >= 2)
-                    AvlTree.TreeLeaf b = right;
-                    AvlTree.TreeLeaf c = b == null ? null : b.left;
+                    TreeLeaf<K, V> b = right;
+                    TreeLeaf<K, V> c = b == null ? null : b.left;
                     if (getHeight(c) <= getHeight(b.right))
                         smallLeftRotate();
                     else
@@ -197,7 +197,7 @@ public class AvlTree<K extends Comparable<K>, V> {
         }
 
         private TreeLeaf<K, V> findMin() {
-            AvlTree.TreeLeaf node = this;
+            TreeLeaf<K, V> node = this;
             while (node.left != null) {
                 node = node.left;
             }
@@ -205,7 +205,7 @@ public class AvlTree<K extends Comparable<K>, V> {
         }
 
         private TreeLeaf<K, V> findMax() {
-            AvlTree.TreeLeaf node = this;
+            TreeLeaf<K, V> node = this;
             while (node.right != null) {
                 node = node.right;
             }
@@ -216,12 +216,12 @@ public class AvlTree<K extends Comparable<K>, V> {
             // if removed node is NOT terminal
             if (left != null || right != null) {
                 // put AvlTree.TreeLeaf node instead of this
-                AvlTree.TreeLeaf node = getBallance() > 0 ? left.findMax() : right.findMin();
+                TreeLeaf<K, V> node = getBallance() > 0 ? left.findMax() : right.findMin();
                 // recalculation of heights and balancing are started from nodeToStartBallance
-                AvlTree.TreeLeaf nodeToStartBallance = this == node.parent ? node : node.parent;
+                TreeLeaf<K, V> nodeToStartBallance = this == node.parent ? node : node.parent;
                 // if node has children, then subTreeToBePasted is subtree of this(i.e. the node to be deleted),
                 // subTreeToBePasted will be put to node
-                AvlTree.TreeLeaf subTreeToBePasted = null;
+                TreeLeaf<K, V> subTreeToBePasted = null;
                 if (node != right) {
                     if (node.right == null) {
                         node.right = right;
@@ -257,7 +257,7 @@ public class AvlTree<K extends Comparable<K>, V> {
                     AvlTree.this.root = node;
                 }
                 if (subTreeToBePasted != null) {
-                    AvlTree.TreeLeaf nodeForPaste = node.find(subTreeToBePasted.key);
+                    TreeLeaf<K, V> nodeForPaste = node.find(subTreeToBePasted.key);
                     int cmp = subTreeToBePasted.key.compareTo(nodeForPaste.key);
                     if (cmp == 0) {
                         throw new RuntimeException("Error in delete()");
@@ -274,7 +274,7 @@ public class AvlTree<K extends Comparable<K>, V> {
             } else {
                 // else - removed node IS terminal
                 if (parent != null) {
-                    AvlTree.TreeLeaf nodeToStartBallance = parent;
+                    TreeLeaf<K, V> nodeToStartBallance = parent;
                     if (parent.right == this)
                         parent.right = null;
                     else
@@ -306,7 +306,7 @@ public class AvlTree<K extends Comparable<K>, V> {
     public V find(K key) {
         if (root == null)
             return null;
-        TreeLeaf found = root.find(key);
+        TreeLeaf<K, V> found = root.find(key);
         return found.key.compareTo(key) == 0 ? (V) found.value : null;
     }
 
@@ -378,3 +378,4 @@ public class AvlTree<K extends Comparable<K>, V> {
         return left + " " + right;
     }
 }
+*/

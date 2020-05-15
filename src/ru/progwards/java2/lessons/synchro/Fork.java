@@ -1,5 +1,10 @@
 package ru.progwards.java2.lessons.synchro;
 
+
 public class Fork {
-    boolean isFree = true;
+    boolean isFree;
+
+    public Fork() {
+        this.isFree = true;
+    }
 }
