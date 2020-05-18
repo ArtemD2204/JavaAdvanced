@@ -4,8 +4,8 @@ import java.util.concurrent.Semaphore;
 
 public class Philosopher extends Thread {
     String name;
-    Fork right; // вилка справа
-    Fork left; // вилка слева
+    private Fork right; // вилка справа
+    private Fork left; // вилка слева
     long reflectTime; // время, которое философ размышляет в мс
     long eatTime; // время, которое философ ест в мс
     long reflectSum; // суммарное время, которое философ размышлял в мс
@@ -19,58 +19,73 @@ public class Philosopher extends Thread {
         this.semaphore = semaphore;
     }
 
-    public Fork getRight() {
-        return right;
-    }
-
     public void setRight(Fork right) {
         this.right = right;
-    }
-
-    public Fork getLeft() {
-        return left;
     }
 
     public void setLeft(Fork left) {
         this.left = left;
     }
 
-//    private void takeRightFork() {
-//        if (getRight().isFree)
-//            getRight().isFree = false;
-//    }
-//
-//    //
-//    private void takeLeftFork() {
-//        if (getLeft().isFree)
-//            getLeft().isFree = false;
-//    }
+    private boolean takeRight() {
+        right.lock.lock();
+        try {
+            if (right.isFree) {
+                right.isFree = false;
+                return true;
+            } else
+                return false;
+        } finally {
+            right.lock.unlock();
+        }
+    }
+
+    private boolean takeLeft() {
+        left.lock.lock();
+        try {
+            if (left.isFree) {
+                left.isFree = false;
+                return true;
+            } else
+                return false;
+        } finally {
+            left.lock.unlock();
+        }
+    }
 
     private boolean takeForks() { // возвращает true, если удалось взять вилку справа и вилку слева
-        if (getRight().isFree)
-            getRight().isFree = false;
-        else
-            return false;
-        if (getLeft().isFree) {
-            getLeft().isFree = false;
-            return true;
-        } else {
-            getRight().isFree = true;
-            return false;
+        return takeLeft() && takeRight();
+    }
+
+    private void putLeft() {
+        left.lock.lock();
+        try {
+            left.isFree = true;
+        } finally {
+            left.lock.unlock();
+        }
+    }
+
+    private void putRight() {
+        right.lock.lock();
+        try {
+            right.isFree = true;
+        } finally {
+            right.lock.unlock();
         }
     }
 
     private void putForks() {
-        getRight().isFree = true;
-        getLeft().isFree = true;
+        putRight();
+        putLeft();
     }
 
     // размышлять. Выводит "размышляет "+ name на консоль с периодичностью 0.5 сек
     void reflect() throws InterruptedException {
         long start = System.currentTimeMillis();
         while (System.currentTimeMillis() - start < reflectTime) {
-//            System.out.println("размышляет " + name);
-            Thread.sleep(500);
+            System.out.println("размышляет " + name);
+            Thread.sleep(100);
         }
         reflectSum += reflectTime;
     }
@@ -80,31 +95,32 @@ public class Philosopher extends Thread {
         long start = System.currentTimeMillis();
         while (System.currentTimeMillis() - start < eatTime) {
             System.out.println("ест " + name);
-            Thread.sleep(500);
+            Thread.sleep(100);
         }
         eatSum += eatTime;
     }
 
     @Override
     public void run() {
-        while (true) {
+        while (!isInterrupted()) {
             try {
                 reflect();
+
                 boolean philosopherIsHungry = true;
                 while (philosopherIsHungry) {
                     semaphore.acquire();
                     if (takeForks()) {
                         eat();
                         philosopherIsHungry = false;
-                        putForks();
                     }
+                    putForks();
                     semaphore.release();
                 }
+
             } catch (InterruptedException e) {
-                e.printStackTrace();
-//            } finally {
-//                putForks();
-//                semaphore.release();
+                interrupt();
+            } finally {
+
             }
         }
     }

@@ -1,5 +1,5 @@
 package ru.progwards.java2.lessons.trees;
-/*
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -163,4 +163,3 @@ public class TreeTest {
 
     }
 }
-*/

@@ -8,8 +8,6 @@ public class Simposion {
     final int NUMBER_OF_PHILOSOPHERS = 5;
     final int NUMBER_OF_FORKS = 5;
     Map<Integer, Philosopher> philosophers;
-//    Map<Integer, Fork> forks;
-//    Map<Integer, Lock> locks;
 
     // инициализирует необходимое количество философов и вилок. Каждый философ выполняется в отдельном потоке
     // reflectTime задает время в мс, через которое философ проголодается
@@ -25,7 +23,6 @@ public class Simposion {
         for (int i=0; i<NUMBER_OF_PHILOSOPHERS; i++){
             String name = "Philosopher_" + i;
             Philosopher philosopher = new Philosopher(name, reflectTime, eatTime, semaphore);
-//            Thread thread = new Thread(philosopher);
             philosophers.put(i, philosopher);
         }
     }
@@ -55,7 +52,7 @@ public class Simposion {
     }
     // завершает философскую беседу
     void stop(){
-        philosophers.values().forEach(Thread::stop);
+        philosophers.values().forEach(Thread::interrupt);
     }
     void print(){
         // Философ name, ел ххх, размышлял xxx
@@ -63,9 +60,9 @@ public class Simposion {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        Simposion simposion = new Simposion(2000, 2000);
+        Simposion simposion = new Simposion(500, 500);
         simposion.start();
-        Thread.sleep(20000);
+        Thread.sleep(10000);
         simposion.stop();
         simposion.print();
     }
