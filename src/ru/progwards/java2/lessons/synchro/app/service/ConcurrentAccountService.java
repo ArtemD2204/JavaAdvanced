@@ -6,7 +6,7 @@ import ru.progwards.java2.lessons.synchro.app.model.Account;
 public class ConcurrentAccountService implements AccountService {
     private StoreService service;
 
-    public ConcurrentAccountService(StoreService service){
+    public ConcurrentAccountService(StoreService service) {
         this.service = service;
     }
 
@@ -40,8 +40,8 @@ public class ConcurrentAccountService implements AccountService {
 
     @Override
     public void transfer(Account from, Account to, double amount) {
-        synchronized (from) {
-            synchronized (to) {
+        while (true) {
+            if (from.getLock().tryLock() && to.getLock().tryLock()) {
                 double fromSum = from.getAmount() - amount;
                 double toSum = to.getAmount() + amount;
                 if (fromSum < 0) {
@@ -51,7 +51,9 @@ public class ConcurrentAccountService implements AccountService {
                 service.update(from);
                 to.setAmount(toSum);
                 service.update(to);
+                break;
             }
         }
     }
+
 }

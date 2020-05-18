@@ -2,6 +2,8 @@ package ru.progwards.java2.lessons.synchro.app.model;
 
 
 import java.util.Date;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 //POJO
 public class Account {
@@ -11,6 +13,11 @@ public class Account {
     private Date date;
     private double amount;
     private int pin;
+    private Lock lock = new ReentrantLock();
+
+    public Lock getLock() {
+        return lock;
+    }
 
     public String getId() {
         return id;
