@@ -13,6 +13,7 @@ public class Account {
     private Date date;
     private double amount;
     private int pin;
+
     private Lock lock = new ReentrantLock();
 
     public Lock getLock() {
