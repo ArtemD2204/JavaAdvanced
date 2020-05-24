@@ -12,7 +12,9 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class HeapTest extends Thread {
-    static final int maxSize = 1000000000;
+    static final int THREADS_NUMBER = 4;
+    static final int heapSize = 1000000000;
+    static final int maxSize = heapSize / THREADS_NUMBER;
     static final int maxSmall = 10;
     static final int maxMedium = 100;
     static final int maxBig = 1000;
@@ -36,7 +38,7 @@ public class HeapTest extends Thread {
 
         @Override
         public String toString() {
-            return "ptr:" + ptr/* + ", size:" + size*/;
+            return "ptr:" + ptr;
         }
     }
 
@@ -66,8 +68,6 @@ public class HeapTest extends Thread {
         long start = System.currentTimeMillis();
         // alloc and free 30% random
         while ((maxSize - allocated) > maxSize / 100000) {
-//            printRes(heap);
-//            System.out.println(Thread.currentThread().getName() + blocks);
             long lstart, lstop;
             int size = getRandomSize();
 
@@ -90,12 +90,8 @@ public class HeapTest extends Thread {
                 try {
                     heap.free(block.ptr);
                 } catch (InvalidPointerException e) {
-
-                    //////////////////////
                     System.out.println(Thread.currentThread().getName() + " " + block);
                     e.printStackTrace();
-                    //////////////////////
-
                 }
                 lstop = System.currentTimeMillis();
                 freeTime += lstop - lstart;
@@ -104,14 +100,16 @@ public class HeapTest extends Thread {
             }
             n = Math.abs(ThreadLocalRandom.current().nextInt() % 100000);
             if (n == 0)
-                System.out.println(maxSize - allocated);
+                System.out.println(Thread.currentThread().getName() + " : " + (maxSize - allocated));
 
         }
         heap.stopBackgroundCompact();
         long stop = System.currentTimeMillis();
+        System.out.println(Thread.currentThread().getName());
         System.out.println(maxSize - allocated);
         System.out.println("malloc time: " + allocTime + " free time: " + freeTime);
         System.out.println("total time: " + (stop - start) + " count: " + count);
+        System.out.println();
 //        printRes(heap);
     }
 
@@ -126,29 +124,12 @@ public class HeapTest extends Thread {
     }
 
     public static void main(String[] args) {
-        int THREADS_NUMBER = 2;
-        Heap heap = new Heap(maxSize, false);
+        Heap heap = new Heap(heapSize, false);
         for (int i = 0; i < THREADS_NUMBER; i++) {
             new HeapTest(heap).start();
         }
     }
 
-//    private static class ThreadHeapTest extends Thread {
-//        Heap heap;
-//        ThreadHeapTest(Heap heap) {
-//            this.heap = heap;
-//        }
-//
-//        @Override
-//        public void run() {
-//            super.run();
-//            try {
-//                testHeap(heap);
-//            } catch (OutOfMemoryException | InvalidPointerException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
 
     private void printRes(Heap heap) {
         int freeMemory = 0;

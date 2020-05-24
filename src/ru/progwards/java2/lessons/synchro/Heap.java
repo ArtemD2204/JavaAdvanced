@@ -12,14 +12,16 @@ public class Heap {
 
     private int heapSize;
     private byte[] bytes;
-    CopyOnWriteArrayList<MemoryBlock> freeBlocks;
+//    CopyOnWriteArrayList<MemoryBlock> freeBlocks;
+    List<MemoryBlock> freeBlocks;
     ConcurrentSkipListMap<Integer, MemoryBlock> usedBlocks;
     private BackgroundCompactThread backgroundCompact;
 
     public Heap(int maxHeapSize, boolean runBackgroundCompact) {
         heapSize = maxHeapSize;
         bytes = new byte[maxHeapSize];
-        freeBlocks = new CopyOnWriteArrayList<>();
+//        freeBlocks = new CopyOnWriteArrayList<>();
+        freeBlocks = new ArrayList<>();
         freeBlocks.add(new MemoryBlock(0, maxHeapSize));
         usedBlocks = new ConcurrentSkipListMap<>(Integer::compare);
         // компактизация в фоновом режиме
@@ -138,12 +140,10 @@ public class Heap {
         }
     }
 
-    public void compact() {
+    public synchronized void compact() {
         if (usedBlocks.size() == 0) {
-            synchronized (freeBlocks) {
                 freeBlocks.clear();
                 freeBlocks.add(new MemoryBlock(0, heapSize));
-            }
             return;
         }
 
@@ -172,20 +172,21 @@ public class Heap {
     }
 
     private void moveUsedBlock(MemoryBlock block, int diff) {
-        synchronized (bytes) {
-            for (int i = block.pointer; i < (block.pointer + block.size); i++) {
-                bytes[i - diff] = bytes[i];
+            try {
+                for (int i = block.pointer; i < (block.pointer + block.size); i++) {
+                    bytes[i - diff] = bytes[i];
+                }
+                block.pointer -= diff;
+            } catch (ArrayIndexOutOfBoundsException e) {
+                System.out.println(block.pointer + " " + block.size + " " + diff);
+                throw e;
             }
-            block.pointer -= diff;
-        }
     }
 
     private void addRemainedMemoryToFreeBlocksList(MemoryBlock lastUsedBlock) {
-        synchronized (freeBlocks) {
             freeBlocks.clear();
             int ptr = lastUsedBlock.pointer + lastUsedBlock.size;
             freeBlocks.add(new MemoryBlock(ptr, heapSize - ptr));
-        }
     }
 
     private class BackgroundCompactThread extends Thread {
