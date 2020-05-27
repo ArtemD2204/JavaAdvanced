@@ -1,5 +1,6 @@
 package ru.progwards.java2.lessons.patterns;
 
+// паттерн Proxy
 public class FilteredGPS {
     private GPS point;
 
