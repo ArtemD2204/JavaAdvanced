@@ -26,7 +26,9 @@ public enum FilterByVelocity {
     private double calculateVelocity(GPS point) {
         if (lastPoint == null)
             return 0;
-        return Math.sqrt(Math.pow(getLatVelocity(point), 2.0) + Math.pow(getLonVelocity(point), 2.0));
+        double latVel = getLatVelocity(point);
+        double lonVel = getLonVelocity(point);
+        return Math.sqrt(latVel * latVel + lonVel * lonVel);
     }
 
     private void updateCounter() {
@@ -38,17 +40,19 @@ public enum FilterByVelocity {
     }
 
     private void updateDispersion(double velocity) {
-        dispersion = (counter-1.0) / counter * dispersion + 1.0 / counter * Math.pow(velocity - expectedValue, 2.0);
+        double deviation = velocity - expectedValue;
+        dispersion = (counter-1.0) / counter * dispersion + 1.0 / counter * (deviation * deviation);
     }
 
     public GPS filterPoint(GPS point) {
         double velocity = calculateVelocity(point);
-        updateCounter();
-        updateExpectedValue(velocity);
-        updateDispersion(velocity);
-        if (Math.abs(velocity - expectedValue) > 3 * Math.sqrt(dispersion) && counter > 50) {
+        double deviation = Math.abs(velocity - expectedValue);
+        if (counter > 50 && deviation > 3 * Math.sqrt(dispersion)) {
             return null;
         } else {
+            updateCounter();
+            updateExpectedValue(velocity);
+            updateDispersion(velocity);
             lastPoint = point;
             return point;
         }
