@@ -34,4 +34,9 @@ public class StatisticInfo {
     public int hashCode() {
         return Objects.hash(sectionName);
     }
+
+    @Override
+    public String toString() {
+        return sectionName + "; fullTime:" + fullTime + "; selfTime:" + selfTime + "; count:" + count;
+    }
 }
