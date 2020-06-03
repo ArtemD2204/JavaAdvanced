@@ -3,7 +3,6 @@ package ru.progwards.java2.lessons.patterns;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 public enum Profiler {
     INSTANCE();
@@ -12,17 +11,10 @@ public enum Profiler {
     private ConcurrentHashMap<String, Deque<String>> sectionNames;
     private ConcurrentHashMap<String, LinkedHashMap<String, StatisticInfo>> sections;
 
-//    private Deque<Long> sectionStartTimeDeque;
-//    private Deque<String> sectionNameDeque;
-//    private LinkedHashMap<String, StatisticInfo> sectionMap;
-
     private Profiler() {
         sectionStartTimes = new ConcurrentHashMap<>();
         sectionNames = new ConcurrentHashMap<>();
         sections = new ConcurrentHashMap<>();
-//        sectionStartTimeDeque = new ArrayDeque<>();
-//        sectionNameDeque = new ArrayDeque<>();
-//        sectionMap = new LinkedHashMap<>();
     }
 
     public void enterSection(String name) {
