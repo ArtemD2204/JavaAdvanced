@@ -22,10 +22,10 @@ public class AtmClient implements AccountService {
              InputStream inputStream = socket.getInputStream();
              OutputStream outputStream = socket.getOutputStream();
              Scanner scanner = new Scanner(inputStream);
-             PrintWriter pr = new PrintWriter(outputStream, true)) {
+             PrintWriter printWriter = new PrintWriter(outputStream, true)) {
 
             String request = "GET /balance?account=" + account.getId() + " HTTP/1.1\n" + "hostname: localhost\n\n";
-            pr.println(request);
+            printWriter.println(request);
 //            socket.shutdownOutput();
 
             if (!scanner.hasNextLine())
