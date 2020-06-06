@@ -10,7 +10,7 @@ public class GenData {
         PrintWriter file = null;
         try {
             file = new PrintWriter(new FileOutputStream(new File("data.txt")));
-            for(int i=0; i<200_000_000; i++)
+            for(int i=0; i<ExternalSort.AMOUNT_OF_NUMBERS; i++)
                 file.println(ThreadLocalRandom.current().nextInt());
         } catch (Exception e) {
             e.printStackTrace();
