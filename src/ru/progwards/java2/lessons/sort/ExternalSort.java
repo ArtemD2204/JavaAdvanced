@@ -8,8 +8,8 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 public class ExternalSort {
-    static final int AMOUNT_OF_NUMBERS = 20000 /*200_000_000*/;
-    static final int MEMORY_SIZE = 100 /*10_000*/;
+    static final int AMOUNT_OF_NUMBERS = 200_000_000;
+    static final int MEMORY_SIZE = 10_000;
     static Integer[] memory = new Integer[MEMORY_SIZE];
     static final int START_NUMBER_OF_BLOCKS = (int) Math.ceil(AMOUNT_OF_NUMBERS / (double) MEMORY_SIZE);
 
@@ -26,40 +26,7 @@ public class ExternalSort {
         if (Files.exists(Paths.get(sourceTmpFileName))) {
             sortedBlocksTmpFileName = sourceTmpFileName;
         }
-        try (Scanner scanner = new Scanner(new FileInputStream(sortedBlocksTmpFileName))) {
-            int count = 0;
-            int countBlocks = 0;
-            int curNum = scanner.nextInt();
-            count++;
-            countBlocks++;
-            while (scanner.hasNextInt()) {
-                int nextNum = scanner.nextInt();
-                if (curNum > nextNum)
-                    countBlocks++;
-                curNum = nextNum;
-                count++;
-            }
-            System.out.println("count: " + count);
-            System.out.println("countBlocks: " + countBlocks);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         balancedMultipathMerge(sortedBlocksTmpFileName, outFileName, blockPointers);
-        try (Scanner scanner = new Scanner(new FileInputStream(outFileName))) {
-            int count = 0;
-            int curNum = scanner.nextInt();
-            count++;
-            while (scanner.hasNextInt()) {
-                int nextNum = scanner.nextInt();
-                if (curNum > nextNum)
-                    System.out.println("Aghtung!!!");
-                curNum = nextNum;
-                count++;
-            }
-            System.out.println("count: " + count);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     // считывает блоками данные из файла inFileName; отсортированные блоки записывает в tmpFileName;
@@ -225,11 +192,6 @@ public class ExternalSort {
             }
             memoryBlockStartIndexes[numberOfBlocks] = numberOfBlocks * readBlockSize;
             int[] memoryBlockCurrentIndexes = Arrays.copyOf(memoryBlockStartIndexes, memoryBlockStartIndexes.length);
-//            System.out.println("=====");
-//            System.out.println(memoryBlockCurrentIndexes.length);
-//            System.out.println(Arrays.toString(memoryBlockCurrentIndexes));
-//            System.out.println(readBlockSize);
-//            System.out.println("=====");
             long[] blockEnds = new long[numberOfBlocks]; // blockEnds - позиции концов блоков в файле
             int memoryIndex = 0;
             for (int i = 0; i < numberOfBlocks; i++) {
@@ -237,31 +199,18 @@ public class ExternalSort {
                 blockPointers[i] = readBlock(blocksFile, blockPointers[i], blockEnds[i], readBlockSize, memoryIndex);
                 memoryIndex += readBlockSize;
             }
-//            System.out.println("=====");
-//            System.out.println(memory.length);
-//            for (int i = 0; i < memory.length; i++) {
-//                System.out.println("" + i + " : " + memory[i]);
-//            }
-//            System.out.println("=====");
             int sortedStartIndex = memoryBlockStartIndexes[memoryBlockStartIndexes.length - 1];
             Integer min = Integer.MAX_VALUE;
-//            int count = 0;
             while (min != null) {
                 // заполняем блок на результат
                 for (int sortedIndex = sortedStartIndex; sortedIndex < MEMORY_SIZE; sortedIndex++) {
                     min = findNextMin(blocksFile, blockPointers, blockEnds, numberOfBlocks,
                             memoryBlockCurrentIndexes, memoryBlockStartIndexes, readBlockSize);
                     memory[sortedIndex] = min;
-//                    count++;
-//                    if (min == null)
-//                        System.out.println(count);
                 }
                 // записываем блок на результат в файл
                 writeToResultFile(sortedFile, sortedStartIndex);
             }
-//            System.out.println("=====");
-//            System.out.println(count);
-//            System.out.println("=====");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -277,9 +226,9 @@ public class ExternalSort {
     private static long readBlock(RandomAccessFile blocksFile, long blockPointer, long blockEnd,
                                   int readBlockSize, int memoryIndex) throws IOException {
         for (int j = memoryIndex; j < (memoryIndex + readBlockSize); j++) {
-            if (blockPointer >= blockEnd)
+            if (blockPointer >= blockEnd) {
                 memory[j] = null;
-            else {
+            } else {
                 memory[j] = readNextInt(blocksFile, blockPointer);
                 blockPointer = blocksFile.getFilePointer();
             }
@@ -289,7 +238,8 @@ public class ExternalSort {
 
     private static Integer findNextMin(RandomAccessFile blocksFile, long[] blockPointers, long[] blockEnds, int numberOfBlocks,
                                        int[] memoryBlockCurrentIndexes, int[] memoryBlockStartIndexes, int readBlockSize) throws IOException {
-        Integer min = null;
+        Integer min = null; // минимальное число
+        Integer indexOfBlockWithMinNum = null; // номер блока, содержащего минимальное число
         int i = 0;
         int currentMemoryIndex = 0;
         for (i = 0; i < numberOfBlocks; i++) {
@@ -303,14 +253,12 @@ public class ExternalSort {
             if (current != null) {
                 if (min == null || current < min) {
                     min = current;
-                    memoryBlockCurrentIndexes[i]++;
+                    indexOfBlockWithMinNum = i;
                 }
             }
         }
-        if (min == null) {
-            System.out.println("number of block " + i);
-            System.out.println("currentMemoryIndex " + currentMemoryIndex);
-        }
+        if (indexOfBlockWithMinNum != null)
+            memoryBlockCurrentIndexes[indexOfBlockWithMinNum]++;
         return min;
     }
 
@@ -326,8 +274,23 @@ public class ExternalSort {
 
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
-        sort("data1.txt", "sorted1.txt");
-        System.out.println("time: " + (System.currentTimeMillis() - start) / 1000);
-//        System.out.println(START_NUMBER_OF_BLOCKS);
+        sort("data.txt", "sorted.txt");
+        System.out.println("time: " + (System.currentTimeMillis() - start) / 1000 + " sec");
+
+        try (Scanner scanner = new Scanner(new FileInputStream("sorted.txt"))) {
+            int count = 0;
+            int curNum = scanner.nextInt();
+            count++;
+            while (scanner.hasNextInt()) {
+                int nextNum = scanner.nextInt();
+                if (curNum > nextNum)
+                    System.out.println("previous greater than next !!!");
+                curNum = nextNum;
+                count++;
+            }
+            System.out.println("count: " + count);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
