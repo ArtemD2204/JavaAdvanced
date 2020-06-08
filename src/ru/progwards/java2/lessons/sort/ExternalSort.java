@@ -14,65 +14,52 @@ public class ExternalSort {
     static final int START_NUMBER_OF_BLOCKS = (int) Math.ceil(AMOUNT_OF_NUMBERS / (double) MEMORY_SIZE);
 
     static void sort(String inFileName, String outFileName) {
-//        try(Scanner scanner = new Scanner(new FileInputStream(inFileName));
-//            PrintWriter printWriter = new PrintWriter(new FileOutputStream(new File(outFileName)));) {
-//            for (int j=0; j<1; j++) {
-//                int blockSize = 0;
-//                while (scanner.hasNext() && blockSize < MEMORY_SIZE) {
-//                    memory[blockSize++] = scanner.nextInt();
-//                }
-//                QuickSort.sort3(memory, 0, blockSize-1);
-//
-//                for (int k=0; k<blockSize; k++) {
-//                    printWriter.println(memory[k]);
-//                }
-//            }
-//
-//        } catch (/*FileNotFoundException |*/ IOException e) {
-//            e.printStackTrace();
-//        }
-//        String lineSeparator = System.getProperty("line.separator");
         String sourceTmpFileName = "tmp_out_0.txt";
         String destTmpFileName = "tmp_out_1.txt";
         long[] blockPointers = readSourceFile(inFileName, sourceTmpFileName);
         if (START_NUMBER_OF_BLOCKS >= MEMORY_SIZE)
             blockPointers = mergePairs(sourceTmpFileName, destTmpFileName, blockPointers);
-
-        System.out.println("blockPointers.length: " + blockPointers.length);
-
-        String fileName = destTmpFileName;
-        if(Files.exists(Paths.get(sourceTmpFileName))) {
-            fileName = sourceTmpFileName;
+        /* после попарного слияния блоков (функция mergePairs) остается один из
+        // двух временных файлов (sourceTmpFileName или destTmpFileName), содержащий отсортированные блоки
+        // сохраняем имя этого файла в переменную sortedBlocksTmpFileName */
+        String sortedBlocksTmpFileName = destTmpFileName;
+        if (Files.exists(Paths.get(sourceTmpFileName))) {
+            sortedBlocksTmpFileName = sourceTmpFileName;
         }
-        try (Scanner scanner = new Scanner(new FileInputStream(fileName))) {
+        try (Scanner scanner = new Scanner(new FileInputStream(sortedBlocksTmpFileName))) {
             int count = 0;
+            int countBlocks = 0;
+            int curNum = scanner.nextInt();
+            count++;
+            countBlocks++;
             while (scanner.hasNextInt()) {
-                scanner.nextInt();
+                int nextNum = scanner.nextInt();
+                if (curNum > nextNum)
+                    countBlocks++;
+                curNum = nextNum;
+                count++;
+            }
+            System.out.println("count: " + count);
+            System.out.println("countBlocks: " + countBlocks);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        balancedMultipathMerge(sortedBlocksTmpFileName, outFileName, blockPointers);
+        try (Scanner scanner = new Scanner(new FileInputStream(outFileName))) {
+            int count = 0;
+            int curNum = scanner.nextInt();
+            count++;
+            while (scanner.hasNextInt()) {
+                int nextNum = scanner.nextInt();
+                if (curNum > nextNum)
+                    System.out.println("Aghtung!!!");
+                curNum = nextNum;
                 count++;
             }
             System.out.println("count: " + count);
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        try {
-//            Path path = Paths.get(outFileName);
-//            if (Files.exists(path))
-//                Files.delete(path);
-//            Files.createFile(path);
-
-//            while (raf.getFilePointer() < raf.length()) {
-//                System.out.println(raf.readLine());
-//            }
-//            tmpOut0.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        try {
-//            Files.delete(Paths.get(outFileName));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
     }
 
     // считывает блоками данные из файла inFileName; отсортированные блоки записывает в tmpFileName;
@@ -108,7 +95,6 @@ public class ExternalSort {
     // сливает отсортированные блоки попарно пока число блоков больше или равно количеству ячеек памяти(длине массива Integer[] memory)
     // конечный результат сохраняется во временный файл
     private static long[] mergePairs(String sourceTmpFileName, String destTmpFileName, long[] blockPointers) {
-        String lineSeparator = System.getProperty("line.separator");
         try {
             int numberOfBlocks = START_NUMBER_OF_BLOCKS;
             while (numberOfBlocks >= MEMORY_SIZE) {
@@ -121,43 +107,7 @@ public class ExternalSort {
                     long secondBlockPtrCurrent = blockPointers[blockCounter + 1];
                     long endOfFirstBlock = blockPointers[blockCounter + 1];
                     long endOfSecondBlock = blockCounter + 2 < numberOfBlocks ? blockPointers[blockCounter + 2] : tmp_source.length();
-
                     mergeTwoBlocks(tmp_source, tmp_dest, firstBlockPtrCurrent, secondBlockPtrCurrent, endOfFirstBlock, endOfSecondBlock);
-
-//                    int firstNum = readNextInt(tmp_source, firstBlockPtrCurrent);
-//                    long firstBlockPtrNext = tmp_source.getFilePointer();
-//                    int secondNum = readNextInt(tmp_source, secondBlockPtrCurrent);
-//                    long secondBlockPtrNext = tmp_source.getFilePointer();
-//
-//                    while (firstBlockPtrCurrent < endOfFirstBlock || secondBlockPtrCurrent < endOfSecondBlock) {
-//                        int blockSize = 0;
-//                        while (blockSize < MEMORY_SIZE && firstBlockPtrCurrent < endOfFirstBlock && secondBlockPtrCurrent < endOfSecondBlock) {
-//                            if (firstNum < secondNum) {
-//                                memory[blockSize++] = firstNum;
-//                                firstNum = readNextInt(tmp_source, firstBlockPtrNext);
-//                                firstBlockPtrCurrent = firstBlockPtrNext;
-//                                firstBlockPtrNext = tmp_source.getFilePointer();
-//                            } else {
-//                                memory[blockSize++] = secondNum;
-//                                secondNum = readNextInt(tmp_source, secondBlockPtrNext);
-//                                secondBlockPtrCurrent = secondBlockPtrNext;
-//                                secondBlockPtrNext = tmp_source.getFilePointer();
-//                            }
-//                        }
-//                        while (blockSize < MEMORY_SIZE && firstBlockPtrCurrent < endOfFirstBlock) {
-//                            memory[blockSize++] = firstNum;
-//                            firstNum = readNextInt(tmp_source, firstBlockPtrNext);
-//                            firstBlockPtrCurrent = firstBlockPtrNext;
-//                            firstBlockPtrNext = tmp_source.getFilePointer();
-//                        }
-//                        while (blockSize < MEMORY_SIZE && secondBlockPtrCurrent < endOfSecondBlock) {
-//                            memory[blockSize++] = secondNum;
-//                            secondNum = readNextInt(tmp_source, secondBlockPtrNext);
-//                            secondBlockPtrCurrent = secondBlockPtrNext;
-//                            secondBlockPtrNext = tmp_source.getFilePointer();
-//                        }
-//                        writeDataToFile(tmp_dest, blockSize);
-//                    }
                 }
                 // если остался последний блок, то копируем его из файла tmp_source в файл tmp_dest
                 if (blockCounter == numberOfBlocks - 1) {
@@ -184,14 +134,14 @@ public class ExternalSort {
     private static void mergeTwoBlocks(RandomAccessFile tmp_source, RandomAccessFile tmp_dest,
                                        long firstBlockPtrCurrent, long secondBlockPtrCurrent,
                                        long endOfFirstBlock, long endOfSecondBlock) throws IOException {
-        int firstNum = readNextInt(tmp_source, firstBlockPtrCurrent);
+        Integer firstNum = readNextInt(tmp_source, firstBlockPtrCurrent);
         long firstBlockPtrNext = tmp_source.getFilePointer();
-        int secondNum = readNextInt(tmp_source, secondBlockPtrCurrent);
+        Integer secondNum = readNextInt(tmp_source, secondBlockPtrCurrent);
         long secondBlockPtrNext = tmp_source.getFilePointer();
-
         while (firstBlockPtrCurrent < endOfFirstBlock || secondBlockPtrCurrent < endOfSecondBlock) {
             int blockSize = 0;
-            while (blockSize < MEMORY_SIZE && firstBlockPtrCurrent < endOfFirstBlock && secondBlockPtrCurrent < endOfSecondBlock) {
+            while (blockSize < MEMORY_SIZE && firstBlockPtrCurrent < endOfFirstBlock
+                    && secondBlockPtrCurrent < endOfSecondBlock) {
                 if (firstNum < secondNum) {
                     memory[blockSize++] = firstNum;
                     firstNum = readNextInt(tmp_source, firstBlockPtrNext);
@@ -220,17 +170,14 @@ public class ExternalSort {
         }
     }
 
-    private static int readNextInt(RandomAccessFile raf, long pointer) throws IOException {
+    private static Integer readNextInt(RandomAccessFile raf, long pointer) throws IOException {
         raf.seek(pointer);
-        return Integer.parseInt(raf.readLine());
+        String str = raf.readLine();
+        if (str == null) {
+            return null;
+        }
+        return Integer.valueOf(str);
     }
-
-//    private static void readNumFromFile() {
-//        memory[blockSize++] = secondNum;
-//        secondNum = readNextInt(tmp_source, secondBlockPtrNext);
-//        secondBlockPtrCurrent = secondBlockPtrNext;
-//        secondBlockPtrNext = tmp_source.getFilePointer();
-//    }
 
     private static void writeDataToFile(RandomAccessFile tmp_dest, int blockSize) throws IOException {
         String lineSeparator = System.lineSeparator();
@@ -241,30 +188,146 @@ public class ExternalSort {
     }
 
     // копировать один блок из файла tmp_source в файл tmp_dest
-    private static void copyOneBlock(RandomAccessFile tmp_source, RandomAccessFile tmp_dest, long[] blockPointers, int blockCounter) throws IOException {
+    private static void copyOneBlock(RandomAccessFile tmp_source, RandomAccessFile tmp_dest,
+                                     long[] blockPointers, int blockCounter) throws IOException {
         String lineSeparator = System.lineSeparator();
-            long blockPtr = blockPointers[blockCounter];
-            long endOfBlock = tmp_source.length();
-            while (blockPtr < endOfBlock) {
-                int num = readNextInt(tmp_source, blockPtr);
-                blockPtr = tmp_source.getFilePointer();
-                tmp_dest.writeBytes(Integer.toString(num));
-                tmp_dest.writeBytes(lineSeparator);
-            }
+        long blockPtr = blockPointers[blockCounter];
+        long endOfBlock = tmp_source.length();
+        while (blockPtr < endOfBlock) {
+            Integer num = readNextInt(tmp_source, blockPtr);
+            blockPtr = tmp_source.getFilePointer();
+            tmp_dest.writeBytes(Integer.toString(num));
+            tmp_dest.writeBytes(lineSeparator);
+        }
     }
+
     // обновляем указатели на блоки blockPointers
     private static long[] updateBlockPointers(long[] blockPointers, int numberOfBlocks) {
         long[] updatedBlockPointers = new long[numberOfBlocks];
         for (int i = 0; i < blockPointers.length; i += 2) {
-            updatedBlockPointers[i/2] = blockPointers[i];
+            updatedBlockPointers[i / 2] = blockPointers[i];
         }
         return updatedBlockPointers;
+    }
+
+    private static void balancedMultipathMerge(String blocksFileName, String sortedFileName, long[] blockPointers) {
+        try (PrintWriter sortedFile = new PrintWriter(new FileOutputStream(new File(sortedFileName)));
+             RandomAccessFile blocksFile = new RandomAccessFile(blocksFileName, "rw");) {
+            int numberOfBlocks = blockPointers.length; // numberOfBlocks - количество отсортированных блоков в файле blocksFile
+            int readBlockSize = MEMORY_SIZE / (numberOfBlocks + 1); // размер блоков, считываемых из файла в memory
+            // массив memoryBlockStartIndexes хранит индексы начала блоков, сами блоки хранятся в Integer[] memory;
+            // последний элемент массива memoryBlockStartIndexes - это индекс начала блока на результат
+            int[] memoryBlockStartIndexes = new int[numberOfBlocks + 1];
+            int readBlockStartIndex = 0;
+            for (int i = 0; i < numberOfBlocks; i++) {
+                memoryBlockStartIndexes[i] = readBlockStartIndex;
+                readBlockStartIndex += readBlockSize;
+            }
+            memoryBlockStartIndexes[numberOfBlocks] = numberOfBlocks * readBlockSize;
+            int[] memoryBlockCurrentIndexes = Arrays.copyOf(memoryBlockStartIndexes, memoryBlockStartIndexes.length);
+//            System.out.println("=====");
+//            System.out.println(memoryBlockCurrentIndexes.length);
+//            System.out.println(Arrays.toString(memoryBlockCurrentIndexes));
+//            System.out.println(readBlockSize);
+//            System.out.println("=====");
+            long[] blockEnds = new long[numberOfBlocks]; // blockEnds - позиции концов блоков в файле
+            int memoryIndex = 0;
+            for (int i = 0; i < numberOfBlocks; i++) {
+                blockEnds[i] = (i == numberOfBlocks - 1) ? blocksFile.length() : blockPointers[i + 1];
+                blockPointers[i] = readBlock(blocksFile, blockPointers[i], blockEnds[i], readBlockSize, memoryIndex);
+                memoryIndex += readBlockSize;
+            }
+//            System.out.println("=====");
+//            System.out.println(memory.length);
+//            for (int i = 0; i < memory.length; i++) {
+//                System.out.println("" + i + " : " + memory[i]);
+//            }
+//            System.out.println("=====");
+            int sortedStartIndex = memoryBlockStartIndexes[memoryBlockStartIndexes.length - 1];
+            Integer min = Integer.MAX_VALUE;
+//            int count = 0;
+            while (min != null) {
+                // заполняем блок на результат
+                for (int sortedIndex = sortedStartIndex; sortedIndex < MEMORY_SIZE; sortedIndex++) {
+                    min = findNextMin(blocksFile, blockPointers, blockEnds, numberOfBlocks,
+                            memoryBlockCurrentIndexes, memoryBlockStartIndexes, readBlockSize);
+                    memory[sortedIndex] = min;
+//                    count++;
+//                    if (min == null)
+//                        System.out.println(count);
+                }
+                // записываем блок на результат в файл
+                writeToResultFile(sortedFile, sortedStartIndex);
+            }
+//            System.out.println("=====");
+//            System.out.println(count);
+//            System.out.println("=====");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            Files.delete(Paths.get(blocksFileName));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // считывает часть блока длиной readBlockSize из файла blocksFile в memory;
+    // возвращает указатель на конец считанного блока в файле
+    private static long readBlock(RandomAccessFile blocksFile, long blockPointer, long blockEnd,
+                                  int readBlockSize, int memoryIndex) throws IOException {
+        for (int j = memoryIndex; j < (memoryIndex + readBlockSize); j++) {
+            if (blockPointer >= blockEnd)
+                memory[j] = null;
+            else {
+                memory[j] = readNextInt(blocksFile, blockPointer);
+                blockPointer = blocksFile.getFilePointer();
+            }
+        }
+        return blockPointer;
+    }
+
+    private static Integer findNextMin(RandomAccessFile blocksFile, long[] blockPointers, long[] blockEnds, int numberOfBlocks,
+                                       int[] memoryBlockCurrentIndexes, int[] memoryBlockStartIndexes, int readBlockSize) throws IOException {
+        Integer min = null;
+        int i = 0;
+        int currentMemoryIndex = 0;
+        for (i = 0; i < numberOfBlocks; i++) {
+            currentMemoryIndex = memoryBlockCurrentIndexes[i];
+            if (currentMemoryIndex >= memoryBlockStartIndexes[i + 1]) {
+                memoryBlockCurrentIndexes[i] = memoryBlockStartIndexes[i];
+                currentMemoryIndex = memoryBlockCurrentIndexes[i];
+                blockPointers[i] = readBlock(blocksFile, blockPointers[i], blockEnds[i], readBlockSize, currentMemoryIndex);
+            }
+            Integer current = memory[currentMemoryIndex];
+            if (current != null) {
+                if (min == null || current < min) {
+                    min = current;
+                    memoryBlockCurrentIndexes[i]++;
+                }
+            }
+        }
+        if (min == null) {
+            System.out.println("number of block " + i);
+            System.out.println("currentMemoryIndex " + currentMemoryIndex);
+        }
+        return min;
+    }
+
+    private static void writeToResultFile(PrintWriter sortedFile, int sortedStartIndex) {
+        for (int sortedIndex = sortedStartIndex; sortedIndex < MEMORY_SIZE; sortedIndex++) {
+            Integer num = memory[sortedIndex];
+            if (num != null)
+                sortedFile.println(num);
+            else
+                break;
+        }
     }
 
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
         sort("data1.txt", "sorted1.txt");
-        System.out.println("time: " + (System.currentTimeMillis()-start)/1000);
+        System.out.println("time: " + (System.currentTimeMillis() - start) / 1000);
 //        System.out.println(START_NUMBER_OF_BLOCKS);
     }
 }
