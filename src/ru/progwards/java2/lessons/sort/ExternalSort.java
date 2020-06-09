@@ -8,8 +8,8 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 public class ExternalSort {
-    static final int AMOUNT_OF_NUMBERS = 80_000 /*200_000_000*/;
-    static final int MEMORY_SIZE = 200 /*10_000*/;
+    static final int AMOUNT_OF_NUMBERS = 200_000_000;
+    static final int MEMORY_SIZE = 10_000;
     static Integer[] memory = new Integer[MEMORY_SIZE];
     static final int START_NUMBER_OF_BLOCKS = (int) Math.ceil(AMOUNT_OF_NUMBERS / (double) MEMORY_SIZE);
 
@@ -282,10 +282,10 @@ public class ExternalSort {
 
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
-        sort("data1.txt", "sorted1.txt");
+        sort("data.txt", "sorted.txt");
         System.out.println("time: " + (System.currentTimeMillis() - start));
 
-        try (Scanner scanner = new Scanner(new FileInputStream("sorted1.txt"))) {
+        try (Scanner scanner = new Scanner(new FileInputStream("sorted.txt"))) {
             int count = 0;
             int curNum = scanner.nextInt();
             count++;

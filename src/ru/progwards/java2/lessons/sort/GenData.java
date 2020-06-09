@@ -9,7 +9,7 @@ public class GenData {
     static void generate() {
         PrintWriter file = null;
         try {
-            file = new PrintWriter(new FileOutputStream(new File("data1.txt")));
+            file = new PrintWriter(new FileOutputStream(new File("data.txt")));
             for(int i=0; i<ExternalSort.AMOUNT_OF_NUMBERS; i++)
                 file.println(ThreadLocalRandom.current().nextInt());
         } catch (Exception e) {
