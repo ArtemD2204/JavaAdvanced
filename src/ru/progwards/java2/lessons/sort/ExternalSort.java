@@ -8,8 +8,8 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 public class ExternalSort {
-    static final int AMOUNT_OF_NUMBERS = 200_000_000;
-    static final int MEMORY_SIZE = 10_000;
+    static final int AMOUNT_OF_NUMBERS = 80_000 /*200_000_000*/;
+    static final int MEMORY_SIZE = 200 /*10_000*/;
     static Integer[] memory = new Integer[MEMORY_SIZE];
     static final int START_NUMBER_OF_BLOCKS = (int) Math.ceil(AMOUNT_OF_NUMBERS / (double) MEMORY_SIZE);
 
@@ -48,8 +48,7 @@ public class ExternalSort {
                 }
                 QuickSort.sort3(memory, 0, blockSize - 1);
                 for (int k = 0; k < blockSize; k++) {
-                    raf.writeBytes(memory[k].toString());
-                    raf.writeBytes(lineSeparator);
+                    raf.writeBytes(memory[k].toString() + lineSeparator);
                 }
             }
             raf.close();
@@ -101,9 +100,11 @@ public class ExternalSort {
     private static void mergeTwoBlocks(RandomAccessFile tmp_source, RandomAccessFile tmp_dest,
                                        long firstBlockPtrCurrent, long secondBlockPtrCurrent,
                                        long endOfFirstBlock, long endOfSecondBlock) throws IOException {
-        Integer firstNum = readNextInt(tmp_source, firstBlockPtrCurrent);
+        tmp_source.seek(firstBlockPtrCurrent);
+        Integer firstNum = readNextInt(tmp_source);
         long firstBlockPtrNext = tmp_source.getFilePointer();
-        Integer secondNum = readNextInt(tmp_source, secondBlockPtrCurrent);
+        tmp_source.seek(secondBlockPtrCurrent);
+        Integer secondNum = readNextInt(tmp_source);
         long secondBlockPtrNext = tmp_source.getFilePointer();
         while (firstBlockPtrCurrent < endOfFirstBlock || secondBlockPtrCurrent < endOfSecondBlock) {
             int blockSize = 0;
@@ -111,34 +112,41 @@ public class ExternalSort {
                     && secondBlockPtrCurrent < endOfSecondBlock) {
                 if (firstNum < secondNum) {
                     memory[blockSize++] = firstNum;
-                    firstNum = readNextInt(tmp_source, firstBlockPtrNext);
+                    tmp_source.seek(firstBlockPtrNext);
+                    firstNum = readNextInt(tmp_source);
                     firstBlockPtrCurrent = firstBlockPtrNext;
                     firstBlockPtrNext = tmp_source.getFilePointer();
                 } else {
                     memory[blockSize++] = secondNum;
-                    secondNum = readNextInt(tmp_source, secondBlockPtrNext);
+                    tmp_source.seek(secondBlockPtrNext);
+                    secondNum = readNextInt(tmp_source);
                     secondBlockPtrCurrent = secondBlockPtrNext;
                     secondBlockPtrNext = tmp_source.getFilePointer();
                 }
             }
-            while (blockSize < MEMORY_SIZE && firstBlockPtrCurrent < endOfFirstBlock) {
-                memory[blockSize++] = firstNum;
-                firstNum = readNextInt(tmp_source, firstBlockPtrNext);
-                firstBlockPtrCurrent = firstBlockPtrNext;
-                firstBlockPtrNext = tmp_source.getFilePointer();
+            if (blockSize < MEMORY_SIZE && firstBlockPtrCurrent < endOfFirstBlock) {
+                tmp_source.seek(firstBlockPtrNext);
+                while (blockSize < MEMORY_SIZE && firstBlockPtrCurrent < endOfFirstBlock) {
+                    memory[blockSize++] = firstNum;
+                    firstNum = readNextInt(tmp_source);
+                    firstBlockPtrCurrent = firstBlockPtrNext;
+                    firstBlockPtrNext = tmp_source.getFilePointer();
+                }
             }
-            while (blockSize < MEMORY_SIZE && secondBlockPtrCurrent < endOfSecondBlock) {
-                memory[blockSize++] = secondNum;
-                secondNum = readNextInt(tmp_source, secondBlockPtrNext);
-                secondBlockPtrCurrent = secondBlockPtrNext;
-                secondBlockPtrNext = tmp_source.getFilePointer();
+            if (blockSize < MEMORY_SIZE && secondBlockPtrCurrent < endOfSecondBlock) {
+                tmp_source.seek(secondBlockPtrNext);
+                while (blockSize < MEMORY_SIZE && secondBlockPtrCurrent < endOfSecondBlock) {
+                    memory[blockSize++] = secondNum;
+                    secondNum = readNextInt(tmp_source);
+                    secondBlockPtrCurrent = secondBlockPtrNext;
+                    secondBlockPtrNext = tmp_source.getFilePointer();
+                }
             }
             writeDataToFile(tmp_dest, blockSize);
         }
     }
 
-    private static Integer readNextInt(RandomAccessFile raf, long pointer) throws IOException {
-        raf.seek(pointer);
+    private static Integer readNextInt(RandomAccessFile raf) throws IOException {
         String str = raf.readLine();
         if (str == null) {
             return null;
@@ -149,8 +157,7 @@ public class ExternalSort {
     private static void writeDataToFile(RandomAccessFile tmp_dest, int blockSize) throws IOException {
         String lineSeparator = System.lineSeparator();
         for (int k = 0; k < blockSize; k++) {
-            tmp_dest.writeBytes(memory[k].toString());
-            tmp_dest.writeBytes(lineSeparator);
+            tmp_dest.writeBytes(memory[k].toString() + lineSeparator);
         }
     }
 
@@ -160,11 +167,11 @@ public class ExternalSort {
         String lineSeparator = System.lineSeparator();
         long blockPtr = blockPointers[blockCounter];
         long endOfBlock = tmp_source.length();
+        tmp_source.seek(blockPtr);
         while (blockPtr < endOfBlock) {
-            Integer num = readNextInt(tmp_source, blockPtr);
+            Integer num = readNextInt(tmp_source);
             blockPtr = tmp_source.getFilePointer();
-            tmp_dest.writeBytes(Integer.toString(num));
-            tmp_dest.writeBytes(lineSeparator);
+            tmp_dest.writeBytes(Integer.toString(num) + lineSeparator);
         }
     }
 
@@ -225,11 +232,12 @@ public class ExternalSort {
     // возвращает указатель на конец считанного блока в файле
     private static long readBlock(RandomAccessFile blocksFile, long blockPointer, long blockEnd,
                                   int readBlockSize, int memoryIndex) throws IOException {
+        blocksFile.seek(blockPointer);
         for (int j = memoryIndex; j < (memoryIndex + readBlockSize); j++) {
             if (blockPointer >= blockEnd) {
                 memory[j] = null;
             } else {
-                memory[j] = readNextInt(blocksFile, blockPointer);
+                memory[j] = readNextInt(blocksFile);
                 blockPointer = blocksFile.getFilePointer();
             }
         }
@@ -274,10 +282,10 @@ public class ExternalSort {
 
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
-        sort("data.txt", "sorted.txt");
-        System.out.println("time: " + (System.currentTimeMillis() - start) / 1000 + " sec");
+        sort("data1.txt", "sorted1.txt");
+        System.out.println("time: " + (System.currentTimeMillis() - start));
 
-        try (Scanner scanner = new Scanner(new FileInputStream("sorted.txt"))) {
+        try (Scanner scanner = new Scanner(new FileInputStream("sorted1.txt"))) {
             int count = 0;
             int curNum = scanner.nextInt();
             count++;
