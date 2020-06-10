@@ -61,7 +61,7 @@ public class CashMachineServer {
                     String[] startStr = scanner.nextLine().split(" ");
                     String firstHeader = scanner.nextLine();
 
-//                    socket.shutdownInput();
+                    socket.shutdownInput();
 
                     String hostname = firstHeader.split(" ")[1];
                     String URI = startStr[1];
@@ -106,7 +106,7 @@ public class CashMachineServer {
                     PrintWriter pr = new PrintWriter(outputStream, true);
                     pr.println(response);
                 }
-//                socket.close();
+                socket.close();
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
