@@ -1,14 +1,12 @@
-package ru.progwards.java2.lessons.calculator;
-
 import java.io.InputStreamReader;
 import java.util.Scanner;
 
-public class Calculator2 {
+public class Calculator {
     private String expression;
     private int pos;
     private enum Operation {ADD, SUB, MUL, DIV, NONE};
 
-    private Calculator2(String expression) {
+    private Calculator(String expression) {
         this.expression = expression;
     }
 
@@ -35,13 +33,16 @@ public class Calculator2 {
     }
 
     Operation getOperation(String op) throws Exception {
-        switch (op) {
-            case ""  :
-            case ")" : return Operation.NONE;
-            case "+" : return Operation.ADD;
-            case "-" : return Operation.SUB;
-            case "*" : return Operation.MUL;
-            case "/" : return Operation.DIV;
+        if ("".equals(op) || ")".equals(op)) {
+            return Operation.NONE;
+        } else if ("+".equals(op)) {
+            return Operation.ADD;
+        } else if ("-".equals(op)) {
+            return Operation.SUB;
+        } else if ("*".equals(op)) {
+            return Operation.MUL;
+        } else if ("/".equals(op)) {
+            return Operation.DIV;
         }
         throw new Exception("unknown operation "+op);
     }
@@ -120,20 +121,18 @@ public class Calculator2 {
     }
 
     public static int calculate(String expression) throws Exception {
-        return new Calculator2(expression).calculate();
+        return new Calculator(expression).calculate();
     }
 
     public static void main(String[] args) throws Exception {
-        System.out.println(Calculator2.calculate("1+(2+3)*2+(1+1)"));
-//        System.out.println("Print END for exit");
-//        try(Scanner scanner = new Scanner(new InputStreamReader(System.in))) {
-//            String equation = scanner.nextLine();;
-//            while (!equation.equals("END")) {
-//                System.out.println(Calculator2.calculate(equation));
-//                equation = scanner.nextLine();
-//            }
-//        }
-
-
+//        System.out.println(Calculator.calculate("1+(2+3)*2+(1+1)"));
+        System.out.println("Print END for exit");
+        try(Scanner scanner = new Scanner(new InputStreamReader(System.in))) {
+            String equation = scanner.nextLine();;
+            while (!equation.equals("END")) {
+                System.out.println(Calculator.calculate(equation));
+                equation = scanner.nextLine();
+            }
+        }
     }
 }
