@@ -1,3 +1,5 @@
+package ru.progwards.java2.lessons.builders.calculator.src.test.java;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;

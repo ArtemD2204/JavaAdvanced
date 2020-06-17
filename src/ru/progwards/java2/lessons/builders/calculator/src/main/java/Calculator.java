@@ -125,7 +125,6 @@ public class Calculator {
     }
 
     public static void main(String[] args) throws Exception {
-//        System.out.println(Calculator.calculate("1+(2+3)*2+(1+1)"));
         System.out.println("Print END for exit");
         try(Scanner scanner = new Scanner(new InputStreamReader(System.in))) {
             String equation = scanner.nextLine();;
