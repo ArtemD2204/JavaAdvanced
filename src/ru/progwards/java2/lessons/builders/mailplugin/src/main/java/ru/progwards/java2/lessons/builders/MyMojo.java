@@ -86,7 +86,7 @@ public class MyMojo
 
     private String findJarPath() {
         Path outputDir = Paths.get(outputDirectory);
-        PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:*dependencies.jar");
+        PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:*jar-with-dependencies.jar");
         final String[] filename = {null};
         try {
             Files.walkFileTree(outputDir, Collections.emptySet(), 1, new SimpleFileVisitor<>() {
