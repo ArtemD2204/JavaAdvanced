@@ -60,7 +60,7 @@ public class Simposion {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        Simposion simposion = new Simposion(500, 500);
+        Simposion simposion = new Simposion(100, 100);
         simposion.start();
         Thread.sleep(10000);
         simposion.stop();

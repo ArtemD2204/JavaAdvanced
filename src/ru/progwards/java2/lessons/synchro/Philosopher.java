@@ -27,57 +27,60 @@ public class Philosopher extends Thread {
         this.left = left;
     }
 
-    private boolean takeRight() {
-        right.lock.lock();
-        try {
-            if (right.isFree) {
-                right.isFree = false;
-                return true;
-            } else
-                return false;
-        } finally {
-            right.lock.unlock();
-        }
+    private boolean takeRight() { // возвращает true, если удалось взять вилку справа
+        if (right.isFree) {
+            right.isFree = false;
+            return true;
+        } else
+            return false;
     }
 
-    private boolean takeLeft() {
-        left.lock.lock();
+    private boolean takeLeft() { // возвращает true, если удалось взять вилку слева
+        if (left.isFree) {
+            left.isFree = false;
+            return true;
+        } else
+            return false;
+    }
+
+    private boolean takeForks() { // возвращает true, если удалось взять вилку слева и вилку справа
         try {
-            if (left.isFree) {
-                left.isFree = false;
-                return true;
-            } else
+            left.lock.lock();
+            right.lock.lock();
+            if (takeLeft()) {
+                if (takeRight()) {
+                    return true;
+                } else {
+                    putLeft();
+                    return false;
+                }
+            } else {
                 return false;
+            }
         } finally {
             left.lock.unlock();
+            right.lock.unlock();
         }
-    }
-
-    private boolean takeForks() { // возвращает true, если удалось взять вилку справа и вилку слева
-        return takeLeft() && takeRight();
     }
 
     private void putLeft() {
-        left.lock.lock();
-        try {
-            left.isFree = true;
-        } finally {
-            left.lock.unlock();
-        }
+        left.isFree = true;
     }
 
     private void putRight() {
-        right.lock.lock();
-        try {
-            right.isFree = true;
-        } finally {
-            right.lock.unlock();
-        }
+        right.isFree = true;
     }
 
     private void putForks() {
-        putRight();
-        putLeft();
+        try {
+            left.lock.lock();
+            right.lock.lock();
+            putLeft();
+            putRight();
+        } finally {
+            left.lock.unlock();
+            right.lock.unlock();
+        }
     }
 
     // размышлять. Выводит "размышляет "+ name на консоль с периодичностью 0.5 сек
@@ -85,7 +88,7 @@ public class Philosopher extends Thread {
         long start = System.currentTimeMillis();
         while (System.currentTimeMillis() - start < reflectTime) {
             System.out.println("размышляет " + name);
-            Thread.sleep(100);
+            Thread.sleep(10);
         }
         reflectSum += reflectTime;
     }
@@ -95,7 +98,7 @@ public class Philosopher extends Thread {
         long start = System.currentTimeMillis();
         while (System.currentTimeMillis() - start < eatTime) {
             System.out.println("ест " + name);
-            Thread.sleep(100);
+            Thread.sleep(10);
         }
         eatSum += eatTime;
     }
@@ -109,11 +112,25 @@ public class Philosopher extends Thread {
                 boolean philosopherIsHungry = true;
                 while (philosopherIsHungry) {
                     semaphore.acquire();
+
+                    // v 1.0
+//                    try {
+//                        left.lock.lock();
+//                        right.lock.lock();
+//                        eat();
+//                        philosopherIsHungry = false;
+//                    } finally {
+//                        left.lock.unlock();
+//                        right.lock.unlock();
+//                    }
+
+                    // v 2.0
                     if (takeForks()) {
                         eat();
                         philosopherIsHungry = false;
+                        putForks();
                     }
-                    putForks();
+
                     semaphore.release();
                 }
 
